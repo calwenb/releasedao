@@ -11,7 +11,7 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.github.calwen.releasedao</groupId>
+    <groupId>io.github.releasedao</groupId>
     <artifactId>releasedao-spring-boot-starter</artifactId>
     <version>1.0.2</version>
 

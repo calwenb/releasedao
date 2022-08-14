@@ -13,7 +13,7 @@
 
 
     <artifactId>releasedao</artifactId>
-    <groupId>io.github.calwen.releasedao</groupId>
+    <groupId>io.github.releasedao</groupId>
     <version>1.0.2</version>
     <packaging>pom</packaging>
     <modules>
