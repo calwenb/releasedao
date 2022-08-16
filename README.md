@@ -27,3 +27,4 @@ releaseDao（ORM），含义：释放dao层，通过APi+注解的形式轻松操
 
 开箱即用。
 Maven依赖。
+使用demo详情请看software-crm模块service层。
