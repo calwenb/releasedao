@@ -9,6 +9,12 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.List;
 
+/**
+ * Client业务类
+ *
+ * @author calwen
+ * @since 2022/8/19
+ */
 @Service
 public class ClientServiceImpl implements ClientService {
     @Resource

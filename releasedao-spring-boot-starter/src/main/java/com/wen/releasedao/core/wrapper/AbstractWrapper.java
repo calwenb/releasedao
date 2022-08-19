@@ -23,7 +23,9 @@ import java.util.HashMap;
  */
 public abstract class AbstractWrapper {
 
-    //WhereNode的内部类
+    /**
+     * WhereNode的内部类
+     */
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
