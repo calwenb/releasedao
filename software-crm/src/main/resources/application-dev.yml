@@ -36,5 +36,5 @@ server:
 
 releasedao:
   config:
-    logger: false
+    logger: true
     camel-case: true
