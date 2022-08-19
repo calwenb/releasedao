@@ -12,7 +12,7 @@ import java.util.HashMap;
  * 抽象wrapper类
  * 1.
  * Node数据结构：
- * { operating：包装操作指令，field：字段，value：预编译值 }
+ * <p>
  * 2.
  * whereList：保存各个Node，以便解析
  * 3.
@@ -23,7 +23,12 @@ import java.util.HashMap;
  */
 public abstract class AbstractWrapper {
 
-    //WhereNode的内部类
+    /**
+     * node数据结构<br>
+     * 1.operating：包装操作指令。<br>
+     * 2.field：字段<br>
+     * 3.value：预编译值
+     */
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -39,41 +44,32 @@ public abstract class AbstractWrapper {
         whereList = new ArrayList<>();
     }
 
-
+    /**
+     * 在构建SQL中加入 ’ = ‘
+     */
     public AbstractWrapper add(String field, Object value) {
         Node node = new Node(OperatEnum.HEAD, field, value);
         whereList.add(node);
         return this;
     }
 
-
+    /**
+     * 在构建SQL中加入 ’ AND ‘
+     */
     public AbstractWrapper and(String field, Object value) {
         Node node = new Node(OperatEnum.AND, field, value);
         whereList.add(node);
         return this;
     }
 
-/*    public AbstractWrapper or(String field, Object value) {
-        Node node = new Node(OperatEnum.OR, field, value);
-        whereList.add(node);
-        return this;
-    }
 
-    public AbstractWrapper or() {
-        Node node = new Node(OperatEnum.OR,null,null);
-        whereList.add(node);
-        return this;
-    }*/
-
-    public ArrayList<Node> getWhereList() {
+    protected ArrayList<Node> getWhereList() {
         return whereList;
     }
 
     /**
      * 抽象方法
      * 解析包装器数据结构返回sql语句和值列表
-     *
-     * @return
      */
     public abstract HashMap<String, Object> getResult();
 

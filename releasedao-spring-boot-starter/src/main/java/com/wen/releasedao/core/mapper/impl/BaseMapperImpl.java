@@ -6,10 +6,10 @@ import com.wen.releasedao.core.annotation.CacheUpdate;
 import com.wen.releasedao.core.enums.CacheUpdateEnum;
 import com.wen.releasedao.core.enums.SelectTypeEnum;
 import com.wen.releasedao.core.mapper.BaseMapper;
+import com.wen.releasedao.core.util.MapperUtil;
 import com.wen.releasedao.core.wrapper.QueryWrapper;
 import com.wen.releasedao.core.wrapper.SetWrapper;
 import com.wen.releasedao.util.CastUtil;
-import com.wen.releasedao.util.MapperUtil;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
@@ -466,23 +466,6 @@ public class BaseMapperImpl implements BaseMapper {
         }
 
     }
-
-/*    private void filterAutoId(Map<String, String> resultMap, Class<?> targetClass) {
-        Iterator<String> it = resultMap.keySet().iterator();
-        while (it.hasNext()) {
-            String k = it.next();
-            Field field;
-            try {
-                field = targetClass.getDeclaredField(k);
-                IdField ann = field.getDeclaredAnnotation(IdField.class);
-                if (ann != null && IdTypeEnum.AUTO.equals(ann.idType())) {
-                    it.remove();
-                }
-            } catch (NoSuchFieldException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }*/
 
     /**
      * 保存数据  base方法

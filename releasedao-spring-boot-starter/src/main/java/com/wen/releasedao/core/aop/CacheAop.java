@@ -4,7 +4,7 @@ import com.wen.releasedao.config.PropertyConfig;
 import com.wen.releasedao.core.annotation.CacheUpdate;
 import com.wen.releasedao.core.enums.CacheUpdateEnum;
 import com.wen.releasedao.core.wrapper.QueryWrapper;
-import com.wen.releasedao.util.MapperUtil;
+import com.wen.releasedao.core.util.MapperUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;

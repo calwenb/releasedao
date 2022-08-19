@@ -7,24 +7,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 封装基本CRUD
+ * 封装基本CRUD <br>
+ * core类
  *
  * @author calwen
  * @since 2022/7/9
  */
 public interface BaseMapper {
+
+    <T> T selectTarget(Class<T> targetClass);
+
+    <T> T selectTarget(Class<T> targetClass, QueryWrapper wrapper);
+
+    <T> T selectTargetById(Class<T> targetClass, Object id);
+
     /**
-     * 返回匹配指定条件的行数
-     * count(*)
+     * 查询目标，通过 查询构造器
      *
      * @param targetClass  目标类型
      * @param queryWrapper 查询构造器
-     * @return count(*)
-     * @author calwen
-     * @since 2022/7/14
+     * @return 结果集
      */
-    <T> Integer selectCount(Class<T> targetClass, QueryWrapper queryWrapper);
+    <T> ArrayList<T> selectList(Class<T> targetClass, QueryWrapper queryWrapper);
 
+    <T> ArrayList<T> selectList(Class<T> targetClass);
 
     /**
      * 返回匹配目标表数据行数
@@ -32,10 +38,18 @@ public interface BaseMapper {
      *
      * @param targetClass 目标类型
      * @return count(*)
-     * @author calwen
-     * @since 2022/7/14
      */
     <T> Integer selectCount(Class<T> targetClass);
+
+    /**
+     * 返回匹配指定条件的行数
+     * count(*)
+     *
+     * @param targetClass  目标类型
+     * @param queryWrapper 查询构造器
+     * @return count(*)
+     */
+    <T> Integer selectCount(Class<T> targetClass, QueryWrapper queryWrapper);
 
 
     /**
@@ -45,33 +59,12 @@ public interface BaseMapper {
      * @param setSqls     ?设置，预编译
      * @param targetClass 目标类型
      * @return 结果集
-     * @author calwen
-     * @since 2022/7/14
      */
     <T> ArrayList<T> selectSQL(String sql, Object[] setSqls, Class<T> targetClass);
 
 
-    /**
-     * 查询目标，通过 查询构造器
-     *
-     * @param targetClass  目标类型
-     * @param queryWrapper 查询构造器
-     * @return 结果集
-     * @author calwen
-     * @since 2022/7/14
-     */
-    <T> ArrayList<T> selectList(Class<T> targetClass, QueryWrapper queryWrapper);
-
-    <T> ArrayList<T> selectList(Class<T> targetClass);
-
-    <T> T selectTarget(Class<T> targetClass, QueryWrapper wrapper);
-
-    <T> T selectTargetById(Class<T> targetClass, Object id);
-
-
-    <T> T selectTarget(Class<T> targetClass);
-
     <T> int save(T target);
+
 
     <T> int insertTarget(T target);
 
@@ -86,7 +79,6 @@ public interface BaseMapper {
     <T> int deleteTarget(Class<T> targetClass, QueryWrapper queryWrapper);
 
     <T> int deleteTargetById(Class<T> targetClass, Integer id);
-
 
     <T> int updateTarget(Class<T> targetClass, SetWrapper setWrapper, QueryWrapper queryWrapper);
 

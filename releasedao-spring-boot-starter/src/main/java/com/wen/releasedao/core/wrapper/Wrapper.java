@@ -1,7 +1,7 @@
 package com.wen.releasedao.core.wrapper;
 
 /**
- * wrapper接口
+ * wrapper包装器接口
  *
  * @author calwen
  * @since 2022/7/9

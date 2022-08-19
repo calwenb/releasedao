@@ -8,7 +8,13 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
-
+/**
+ * Demo
+ * 1.注入 BaseMapper。
+ * 2.调用API。
+ * @author calwen
+ * @since 2022/8/19
+ */
 @Service
 public class ClientServiceImpl implements ClientService {
     @Resource

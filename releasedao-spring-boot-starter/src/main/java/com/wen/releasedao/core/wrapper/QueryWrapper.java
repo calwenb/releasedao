@@ -2,22 +2,20 @@ package com.wen.releasedao.core.wrapper;
 
 import com.wen.releasedao.core.enums.OperatEnum;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 
 /**
- * WhereWrapper类
- * 构建查询sql
+ * Where包装器类
+ * 构建解析查询sql
  *
  * @author calwen
  * @since 2022/7/9
  */
 public class QueryWrapper extends AbstractWrapper implements Wrapper {
-    private static HashSet<OperatEnum> needWhereSet;
-    private String SelectField;
-
-    public String getSelectField() {
-        return SelectField;
-    }
+    private static final HashSet<OperatEnum> needWhereSet;
 
     static {
         needWhereSet = new HashSet<>();
@@ -37,6 +35,21 @@ public class QueryWrapper extends AbstractWrapper implements Wrapper {
 
     }
 
+    private String selectField;
+
+    public String getSelectField() {
+        return selectField;
+    }
+
+    /**
+     * 指定字段查询
+     */
+    public QueryWrapper select(String SelectField) {
+        this.selectField = SelectField;
+        return this;
+    }
+
+
     /**
      * 解析 构造 sql，预编译值
      *
@@ -49,12 +62,10 @@ public class QueryWrapper extends AbstractWrapper implements Wrapper {
         ArrayList<Node> whereList = getWhereList();
         ArrayList<Object> setList = new ArrayList<>();
         StringBuffer whereSQL = new StringBuffer();
-
         for (Node node : whereList) {
             OperatEnum operating = node.getOperating();
             String field = node.getField();
             Object value = node.getValue();
-
             if (needWhereSet.contains(operating)) {
                 int len = whereSQL.length();
                 if (len == 0) {
@@ -64,7 +75,6 @@ public class QueryWrapper extends AbstractWrapper implements Wrapper {
                         whereSQL.append(" AND ");
                     }
                 }
-
             }
             switch (operating) {
                 case EQ:
@@ -120,12 +130,10 @@ public class QueryWrapper extends AbstractWrapper implements Wrapper {
                     whereSQL.append(" CONCAT( ").append(field).append(" ) ").append(" LIKE '%").append(value).append("%' ");
                     break;
                 case LIKE_LEFT:
-
-                    whereSQL.append(" CONCAT( ").append(field).append(" ) ").append(" LIKE '").append(value).append("%' ");
+                    whereSQL.append(" CONCAT( ").append(field).append(" ) ").append(" LIKE '%").append(value).append("' ");
                     break;
                 case LIKE_RIGHT:
-
-                    whereSQL.append(" CONCAT( ").append(field).append(" ) ").append(" LIKE '%").append(value).append("' ");
+                    whereSQL.append(" CONCAT( ").append(field).append(" ) ").append(" LIKE '").append(value).append("%' ");
                     break;
                 case ORDER:
                     whereSQL.append(" ORDER BY ").append(field);
@@ -139,7 +147,6 @@ public class QueryWrapper extends AbstractWrapper implements Wrapper {
                 default:
                     whereSQL.append(operating).append(" `").append(field).append("` ").append("= ? ");
                     setList.add(value);
-
             }
 
         }
@@ -150,112 +157,178 @@ public class QueryWrapper extends AbstractWrapper implements Wrapper {
     }
 
 
-    public QueryWrapper or() {
-        Node node = new Node(OperatEnum.OR, null, null);
-        super.getWhereList().add(node);
-        return this;
-    }
-
+    /**
+     * 等于 <br>
+     * 相当于 ’=‘
+     */
     public QueryWrapper eq(String field, Object value) {
         Node node = new Node(OperatEnum.EQ, field, value);
         super.getWhereList().add(node);
         return this;
     }
 
-    public QueryWrapper in(String field, Object... inValues) {
-        Node node = new Node(OperatEnum.IN, field, inValues);
-        super.getWhereList().add(node);
-        return this;
-    }
 
+    /**
+     * 不等于 <br>
+     * 相当于 ’<>‘
+     */
     public QueryWrapper notEq(String field, Object value) {
         Node node = new Node(OperatEnum.NOT_EQ, field, value);
         super.getWhereList().add(node);
         return this;
     }
 
+    /**
+     * 大于 <br>
+     * 相当于 ’>‘
+     */
     public QueryWrapper greater(String field, Object value) {
         Node node = new Node(OperatEnum.GREATER, field, value);
         super.getWhereList().add(node);
         return this;
     }
 
+    /**
+     * 小于<br>
+     * 相当于 ’<‘
+     */
     public QueryWrapper less(String field, Object value) {
         Node node = new Node(OperatEnum.LESS, field, value);
         super.getWhereList().add(node);
         return this;
     }
 
+    /**
+     * 大于等于 <br>
+     * 相当于 '>='
+     */
     public QueryWrapper gEq(String field, Object value) {
         Node node = new Node(OperatEnum.G_EQ, field, value);
         super.getWhereList().add(node);
         return this;
     }
 
+    /**
+     * 小于等于 <br>
+     * 相当于 '<='
+     */
     public QueryWrapper lEq(String field, Object value) {
         Node node = new Node(OperatEnum.L_EQ, field, value);
         super.getWhereList().add(node);
         return this;
     }
 
+    /**
+     * 范围匹配 <br>
+     * 相当于 ’IN‘
+     */
+    public QueryWrapper in(String field, Object... inValues) {
+        Node node = new Node(OperatEnum.IN, field, inValues);
+        super.getWhereList().add(node);
+        return this;
+    }
 
+
+    /**
+     * 模糊匹配 <br>
+     * 相当于 " LIKE '% ? %' "
+     */
     public QueryWrapper like(String fields, Object value) {
         Node node = new Node(OperatEnum.LIKE, fields, value);
         super.getWhereList().add(node);
         return this;
     }
 
+    /**
+     * 左模糊匹配 <br>
+     * 相当于 " LIKE '% ?' "
+     */
     public QueryWrapper likeLeft(String fields, Object value) {
         Node node = new Node(OperatEnum.LIKE_LEFT, fields, value);
         super.getWhereList().add(node);
         return this;
     }
 
+    /**
+     * 右模糊 <br>
+     * 相当于 " LIKE ' ?%' "
+     */
     public QueryWrapper likeRight(String fields, Object value) {
         Node node = new Node(OperatEnum.LIKE_RIGHT, fields, value);
         super.getWhereList().add(node);
         return this;
     }
 
+    /**
+     * 或者 <br>
+     * 相当于 ’OR‘
+     */
+    public QueryWrapper or() {
+        Node node = new Node(OperatEnum.OR, null, null);
+        super.getWhereList().add(node);
+        return this;
+    }
+
+    /**
+     * 分页
+     *
+     * @param offset 偏移量
+     * @param rows   记录数
+     */
     public QueryWrapper limit(int offset, int rows) {
         Node node = new Node(OperatEnum.LIMIT, offset + "," + rows, null);
         super.getWhereList().add(node);
         return this;
     }
 
+    /**
+     * 分页
+     *
+     * @param rows 记录数
+     */
     public QueryWrapper limit(int rows) {
         Node node = new Node(OperatEnum.LIMIT, String.valueOf(rows), null);
         super.getWhereList().add(node);
         return this;
     }
 
+    /**
+     * 根据字段倒序排序  <br>
+     * 相当于 'ORDER BY ? DESC'
+     */
     public QueryWrapper orderDesc(String fields) {
         Node node = new Node(OperatEnum.ORDER_DESC, fields, null);
         super.getWhereList().add(node);
         return this;
     }
 
+    /**
+     * 根据字段升序排序 <br>
+     * 相当于 'ORDER BY'
+     */
     public QueryWrapper order(String fields) {
         Node node = new Node(OperatEnum.ORDER, fields, null);
         super.getWhereList().add(node);
         return this;
     }
 
+    /**
+     * 不为空 <br>
+     * 相当于 'IS NOT NULL'
+     */
     public QueryWrapper notNull(String filed) {
         Node node = new Node(OperatEnum.ONT_NULL, filed, null);
         super.getWhereList().add(node);
         return this;
     }
 
+    /**
+     * 为空 <br>
+     * 相当于 'NOT NULL'
+     */
     public QueryWrapper isNUll(String filed) {
         Node node = new Node(OperatEnum.IS_NULL, filed, null);
         super.getWhereList().add(node);
-        return this;
-    }
-
-
-    public QueryWrapper select(String SelectField) {
-        this.SelectField = SelectField;
         return this;
     }
 

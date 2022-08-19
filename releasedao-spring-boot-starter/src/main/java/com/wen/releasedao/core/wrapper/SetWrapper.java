@@ -7,15 +7,17 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 /**
- * SetWrapper类
- * 构建更新sql
+ * set操作包装器类
+ * 构建解析查询sql
  *
  * @author calwen
  * @since 2022/7/9
  */
 public class SetWrapper extends AbstractWrapper implements Wrapper {
 
-
+    /**
+     * 构建更新操作sql
+     */
     @Override
     public HashMap<String, Object> getResult() {
         LinkedHashMap<String, Object> map = new LinkedHashMap<>();

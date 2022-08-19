@@ -24,7 +24,6 @@ public class MapperLogAop {
     @Around("execution(public * com.wen.releasedao.core.mapper.impl.BaseMapperImpl.*(..))")
     public Object printfLog(ProceedingJoinPoint joinPoint) throws Throwable {
         System.out.println("\n===========================\n");
-        //log.info("====================");
         Object rs = joinPoint.proceed();
        /* Field pstLog = joinPoint.getTarget().getClass().getDeclaredField("pstLog");
         pstLog.setAccessible(true);

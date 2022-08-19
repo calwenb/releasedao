@@ -1,4 +1,4 @@
-package com.wen.releasedao.util;
+package com.wen.releasedao.core.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -7,6 +7,7 @@ import com.wen.releasedao.core.annotation.FieldName;
 import com.wen.releasedao.core.annotation.IdField;
 import com.wen.releasedao.core.annotation.TableName;
 import com.wen.releasedao.core.enums.SelectTypeEnum;
+import com.wen.releasedao.util.SqlUtil;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
