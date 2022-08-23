@@ -1,8 +1,5 @@
 package com.wen.releasedao.core.enums;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 /**
  * wrapper操作枚举类
  *

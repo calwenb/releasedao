@@ -12,7 +12,7 @@ public enum CacheEnum {
     /**
      * 缓存旁路模式，
      * 默认  key=表名:主键名:{id}
-     * 主键，默认第一个舒心
+     * 主键，默认第一个属性
      * value= 结果值
      */
     DEFAULT,

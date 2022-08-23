@@ -5,7 +5,6 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 
-import java.lang.reflect.Field;
 import java.util.List;
 
 /**
@@ -21,7 +20,7 @@ import java.util.List;
 @Aspect
 public class MapperLogAop {
 
-    @Around("execution(public * com.wen.releasedao.core.mapper.impl.BaseMapperImpl.*(..))")
+    @Around("execution(public * com.wen.releasedao.core.mapper.BaseMapper.*(..))")
     public Object printfLog(ProceedingJoinPoint joinPoint) throws Throwable {
         System.out.println("\n===========================\n");
         Object rs = joinPoint.proceed();

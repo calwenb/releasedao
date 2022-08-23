@@ -5,14 +5,13 @@ import com.wen.releasedao.core.annotation.CacheQuery;
 import com.wen.releasedao.core.annotation.CacheUpdate;
 import com.wen.releasedao.core.enums.CacheUpdateEnum;
 import com.wen.releasedao.core.enums.SelectTypeEnum;
+import com.wen.releasedao.core.exception.SqlException;
 import com.wen.releasedao.core.mapper.BaseMapper;
 import com.wen.releasedao.core.util.MapperUtil;
 import com.wen.releasedao.core.wrapper.QueryWrapper;
 import com.wen.releasedao.core.wrapper.SetWrapper;
 import com.wen.releasedao.util.CastUtil;
 
-import javax.annotation.Resource;
-import javax.sql.DataSource;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
@@ -23,27 +22,18 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-
 /**
  * BaseMapper实现类
  *
  * @author calwen
  * @since 2022 /7/9
  */
+//@SuppressWarnings("unchecked")
 public class BaseMapperImpl implements BaseMapper {
-
     /**
-     * The Data source.
+     * 数据库连接 AOP自动管理连接
      */
-    @Resource
-    DataSource dataSource;
-    /**
-     * 数据库连接
-     *
-     * @author calwen
-     * @since 2022 /7/14
-     */
-    Connection conn;
+    private Connection conn;
     /**
      * PreparedStatement sql 日志
      * AOP输出日志
@@ -51,77 +41,70 @@ public class BaseMapperImpl implements BaseMapper {
     public String pstLog;
 
     @Override
-    public <T> Integer getCount(Class<T> targetClass, QueryWrapper wrapper) {
-        return (Integer) baseSelect(targetClass, wrapper, SelectTypeEnum.COUNT);
+    public <T> int getCount(Class<T> tClass, QueryWrapper wrapper) {
+        return (int) baseSelect(tClass, wrapper, SelectTypeEnum.COUNT);
     }
 
     @Override
-    public <T> Integer getCount(Class<T> targetClass) {
-        return (Integer) baseSelect(targetClass, null, SelectTypeEnum.COUNT);
+    public <T> int getCount(Class<T> tClass) {
+        return (int) baseSelect(tClass, null, SelectTypeEnum.COUNT);
     }
 
     @Override
-    public <T> ArrayList<T> getList(Class<T> targetClass, QueryWrapper wrapper) {
-        return (ArrayList<T>) baseSelect(targetClass, wrapper, SelectTypeEnum.ALL);
+
+    public <T> List<T> getList(Class<T> tClass, QueryWrapper wrapper) {
+        return (List<T>) baseSelect(tClass, wrapper, SelectTypeEnum.ALL);
 
     }
 
     @Override
-    public <T> ArrayList<T> getList(Class<T> targetClass) {
-        return (ArrayList<T>) baseSelect(targetClass, null, SelectTypeEnum.ALL);
+
+    public <T> List<T> getList(Class<T> tClass) {
+        return (List<T>) baseSelect(tClass, null, SelectTypeEnum.ALL);
     }
 
+    @Override
     @CacheQuery
-    public <T> T get(Class<T> targetClass, QueryWrapper wrapper) {
-        return (T) baseSelect(targetClass, wrapper, SelectTypeEnum.ONE);
+
+    public <T> T get(Class<T> tClass, QueryWrapper wrapper) {
+        return (T) baseSelect(tClass, wrapper, SelectTypeEnum.ONE);
     }
 
-    /**
-     * @param targetClass
-     * @param id
-     * @param <T>
-     * @return
-     */
-    @CacheQuery
+
     @Override
-    public <T> T getById(Class<T> targetClass, Object id) {
+    @CacheQuery
+
+    public <T> T getById(Class<T> tClass, Object id) {
         QueryWrapper wrapper = new QueryWrapper();
-        wrapper.eq(MapperUtil.parseId(targetClass), id);
-        return (T) baseSelect(targetClass, wrapper, SelectTypeEnum.ONE);
+        wrapper.eq(MapperUtil.parseId(tClass), id);
+        return (T) baseSelect(tClass, wrapper, SelectTypeEnum.ONE);
     }
 
     @Override
-    public <T> T get(Class<T> targetClass) {
-        return (T) baseSelect(targetClass, null, SelectTypeEnum.ONE);
+
+    public <T> T get(Class<T> tClass) {
+        return (T) baseSelect(tClass, null, SelectTypeEnum.ONE);
     }
 
-
+    @Override
     public <T> int add(T target) {
         return baseSave(target, "INSERT");
     }
 
-    /**
-     * @param targetList
-     * @param <T>
-     * @return
-     */
+
     @Override
     public <T> int addBatch(List<T> targetList) {
         return baseBatchSave(targetList, "INSERT");
     }
 
+    @Override
     @CacheUpdate(CacheUpdateEnum.TARGET)
     public <T> int replace(T target) {
         return baseSave(target, "REPLACE");
     }
 
-    /**
-     * @param targetList
-     * @param <T>
-     * @return
-     */
-    @CacheUpdate(CacheUpdateEnum.BATCH)
     @Override
+    @CacheUpdate(CacheUpdateEnum.BATCH)
     public <T> int replaceBatch(List<T> targetList) {
         return baseBatchSave(targetList, "REPLACE");
     }
@@ -131,51 +114,38 @@ public class BaseMapperImpl implements BaseMapper {
         return replace(target);
     }
 
-    /**
-     * @param targetList
-     * @param <T>
-     * @return
-     */
-    @CacheUpdate(CacheUpdateEnum.BATCH)
     @Override
+    @CacheUpdate(CacheUpdateEnum.BATCH)
     public <T> int saveBatch(List<T> targetList) {
         return replaceBatch(targetList);
     }
 
 
-    public <T> ArrayList<T> selectSQL(String sql, Object[] setSqls, Class<T> targetClass) {
+    public <T> List<T> selectSQL(Class<T> tClass, String sql, Object[] setSqls) {
         try {
-            conn = dataSource.getConnection();
             //执行查询
             PreparedStatement pst = conn.prepareStatement(sql);
-            Map<String, String> resultMap = MapperUtil.resultMap(targetClass);
+            Map<String, String> resultMap = MapperUtil.resultMap(tClass);
             //需要设值时
             for (int i = 0; setSqls != null && i < setSqls.length; i++) {
                 pst.setObject(i + 1, setSqls[i]);
             }
             pstLog = String.valueOf(pst);
             ResultSet rs = pst.executeQuery();
-            return (ArrayList<T>) MapperUtil.getTarget(rs, resultMap, targetClass, null);
-        } catch (SQLException | NoSuchMethodException | InstantiationException | IllegalAccessException |
-                 InvocationTargetException e) {
+            return (List<T>) MapperUtil.getTarget(rs, resultMap, tClass, null);
+        } catch (Exception e) {
             System.out.println("===============\n 发生错误！！！ \n SQL==>" + pstLog);
             throw new RuntimeException(e);
-        } finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
         }
 
     }
 
 
     @CacheUpdate(CacheUpdateEnum.WRAPPER)
-    public <T> int delete(Class<T> targetClass, QueryWrapper queryWrapper) {
+    public <T> int delete(Class<T> tClass, QueryWrapper queryWrapper) {
 
         try {
-            conn = dataSource.getConnection();
+
             //删除必须指定条件，否则会全表删除
             if (queryWrapper == null) {
                 System.out.println("删除必须指定条件，否则会全表删除!!!");
@@ -191,7 +161,7 @@ public class BaseMapperImpl implements BaseMapper {
                 return 0;
             }
 
-            String tableName = MapperUtil.parseTableName(targetClass);
+            String tableName = MapperUtil.parseTableName(tClass);
 
             StringBuilder sql = new StringBuilder();
             sql.append("DELETE FROM ").append(tableName);
@@ -209,33 +179,22 @@ public class BaseMapperImpl implements BaseMapper {
         } catch (SQLException e) {
             System.out.println("===============\n 发生错误！！！ \n SQL==>" + pstLog);
             throw new RuntimeException(e);
-        } finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 
-    /**
-     * @param targetClass
-     * @param id
-     * @param <T>
-     * @return
-     */
+
     @Override
-    public <T> int deleteById(Class<T> targetClass, Integer id) {
+    public <T> int deleteById(Class<T> tClass, Integer id) {
         QueryWrapper wrapper = new QueryWrapper();
-        wrapper.eq(MapperUtil.parseId(targetClass), id);
-        return delete(targetClass, wrapper);
+        wrapper.eq(MapperUtil.parseId(tClass), id);
+        return delete(tClass, wrapper);
     }
 
     @CacheUpdate(CacheUpdateEnum.WRAPPER)
-    public <T> int update(Class<T> targetClass, SetWrapper setWrapper, QueryWrapper queryWrapper) {
+    public <T> int update(Class<T> tClass, SetWrapper setWrapper, QueryWrapper queryWrapper) {
 
         try {
-            conn = dataSource.getConnection();
+
             //更新必须指定条件
             if (setWrapper == null || queryWrapper == null) {
                 System.out.println("更新必须指定set,where");
@@ -256,7 +215,7 @@ public class BaseMapperImpl implements BaseMapper {
                 return 0;
             }
             //解析表名
-            String tableName = MapperUtil.parseTableName(targetClass);
+            String tableName = MapperUtil.parseTableName(tClass);
 
             //拼接sql
             StringBuilder sql = new StringBuilder();
@@ -279,12 +238,6 @@ public class BaseMapperImpl implements BaseMapper {
         } catch (SQLException e) {
             System.out.println("===============\n 发生错误！！！ \n SQL==>" + pstLog);
             throw new RuntimeException(e);
-        } finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 
@@ -293,7 +246,7 @@ public class BaseMapperImpl implements BaseMapper {
     public <T> boolean exeSQL(String sql, Object[] setSqls) {
 
         try {
-            conn = dataSource.getConnection();
+
             //执行查询
             PreparedStatement pst = conn.prepareStatement(sql);
             //设值
@@ -307,12 +260,6 @@ public class BaseMapperImpl implements BaseMapper {
             System.out.println("===============\n 发生错误！！！ \n SQL==>" + pstLog);
             throw new RuntimeException(e);
 
-        } finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 
@@ -321,20 +268,18 @@ public class BaseMapperImpl implements BaseMapper {
      * 查询数据 base方法
      * 通过type 返回不同的结果类型
      *
-     * @param targetClass 目标class
-     * @param wrapper     查询构造器
-     * @param type        查询类型
+     * @param tClass  目标class
+     * @param wrapper 查询构造器
+     * @param type    查询类型
      * @author calwen
      * @since 2022/7/14
      */
-    private <T> Object baseSelect(Class<T> targetClass, QueryWrapper wrapper, SelectTypeEnum type) {
+    private <T> Object baseSelect(Class<T> tClass, QueryWrapper wrapper, SelectTypeEnum type) {
         StringBuilder sql = null;
         try {
-            conn = dataSource.getConnection();
-
             //解析表名
-            String tableName = MapperUtil.parseTableName(targetClass);
-            Map<String, String> resultMap = MapperUtil.resultMap(targetClass);
+            String tableName = MapperUtil.parseTableName(tClass);
+            Map<String, String> resultMap = MapperUtil.resultMap(tClass);
             //sql拼接
             sql = new StringBuilder();
             sql.append("SELECT ");
@@ -376,35 +321,27 @@ public class BaseMapperImpl implements BaseMapper {
             pstLog = String.valueOf(pst);
             ResultSet rs = pst.executeQuery();
             // 将sql结果集解析 对象或对象集
-            return MapperUtil.getTarget(rs, resultMap, targetClass, type);
+            return MapperUtil.getTarget(rs, resultMap, tClass, type);
 
         } catch (SQLException | NoSuchMethodException | InstantiationException | IllegalAccessException |
                  InvocationTargetException e) {
             System.out.println("===============\n 发生错误！！！ \n SQL==>" + pstLog);
             System.out.println(sql);
             throw new RuntimeException(e);
-        } finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 
 
     private <T> int baseBatchSave(List<T> targetList, String saveType) {
         try {
+            Class<?> tClass = targetList.get(0).getClass();
 
-
-            Class<?> targetClass = targetList.get(0).getClass();
-            conn = dataSource.getConnection();
             int listSize = targetList.size();
 
             //反射获取目标信息
-            Map<String, String> resultMap = MapperUtil.resultMap(targetClass);
+            Map<String, String> resultMap = MapperUtil.resultMap(tClass);
             //解析表名
-            String tableName = MapperUtil.parseTableName(targetClass);
+            String tableName = MapperUtil.parseTableName(tClass);
 
             StringBuilder sql = new StringBuilder();
             if ("INSERT".equals(saveType)) {
@@ -441,7 +378,7 @@ public class BaseMapperImpl implements BaseMapper {
             for (T target : targetList) {
                 resultMap.forEach((k, v) -> {
                     try {
-                        Field objField = targetClass.getDeclaredField(k);
+                        Field objField = tClass.getDeclaredField(k);
                         objField.setAccessible(true);
                         pst.setObject(i.get(), objField.get(target));
                         //i++
@@ -457,12 +394,6 @@ public class BaseMapperImpl implements BaseMapper {
         } catch (SQLException e) {
             System.out.println("===============\n 发生错误！！！ \n SQL==>" + pstLog);
             throw new RuntimeException(e);
-        } finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
         }
 
     }
@@ -476,13 +407,13 @@ public class BaseMapperImpl implements BaseMapper {
      */
     private <T> int baseSave(T target, String saveType) {
         try {
-            conn = dataSource.getConnection();
-            Class<?> targetClass = target.getClass();
+
+            Class<?> tClass = target.getClass();
 
             //反射获取目标信息
-            Map<String, String> resultMap = MapperUtil.resultMap(targetClass);
+            Map<String, String> resultMap = MapperUtil.resultMap(tClass);
             //解析表名
-            String tableName = MapperUtil.parseTableName(targetClass);
+            String tableName = MapperUtil.parseTableName(tClass);
 
             StringBuilder sql = new StringBuilder();
             if ("INSERT".equals(saveType)) {
@@ -513,7 +444,7 @@ public class BaseMapperImpl implements BaseMapper {
             AtomicInteger i = new AtomicInteger(1);
             resultMap.forEach((k, v) -> {
                 try {
-                    Field objField = targetClass.getDeclaredField(k);
+                    Field objField = tClass.getDeclaredField(k);
                     objField.setAccessible(true);
                     pst.setObject(i.get(), objField.get(target));
                     //i++
@@ -527,15 +458,8 @@ public class BaseMapperImpl implements BaseMapper {
             return pst.executeUpdate();
         } catch (SQLException e) {
             System.out.println("===============\n 发生错误！！！ \n SQL==>" + pstLog);
-            throw new RuntimeException(e);
-        } finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
+            throw new SqlException(" 批量保存时发生sql异常 ");
         }
-
     }
 
 

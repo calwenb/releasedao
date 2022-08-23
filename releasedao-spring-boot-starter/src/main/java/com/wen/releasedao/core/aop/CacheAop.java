@@ -3,8 +3,8 @@ package com.wen.releasedao.core.aop;
 import com.wen.releasedao.config.PropertyConfig;
 import com.wen.releasedao.core.annotation.CacheUpdate;
 import com.wen.releasedao.core.enums.CacheUpdateEnum;
-import com.wen.releasedao.core.wrapper.QueryWrapper;
 import com.wen.releasedao.core.util.MapperUtil;
+import com.wen.releasedao.core.wrapper.QueryWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -16,7 +16,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import javax.annotation.Resource;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -30,23 +33,23 @@ import java.util.concurrent.TimeUnit;
 @Aspect
 @Slf4j
 public class CacheAop {
-    private PropertyConfig config = new PropertyConfig();
+    private final PropertyConfig config = new PropertyConfig();
     @Resource
-    RedisTemplate redisTemplate;
+    RedisTemplate<String, Object> redisTemplate;
 
     @Pointcut("@annotation(com.wen.releasedao.core.annotation.CacheQuery)")
-    public void queryPointcut() {
+    private void queryPointcut() {
 
     }
 
     @Pointcut("@annotation(com.wen.releasedao.core.annotation.CacheUpdate)")
-    public void updatePointcut() {
+    private void updatePointcut() {
 
     }
 
 
     @Around("queryPointcut()")
-    public Object queryCache(ProceedingJoinPoint joinPoint) throws Throwable, Exception {
+    public Object queryCache(ProceedingJoinPoint joinPoint) throws Throwable {
         log.info("进入查询缓存AOP");
         Object[] args = joinPoint.getArgs();
         Class<?> targetClass = (Class<?>) args[0];
@@ -126,21 +129,14 @@ public class CacheAop {
             CacheUpdate declaredAnnotation = method.getDeclaredAnnotation(CacheUpdate.class);
             CacheUpdateEnum cacheUpdate = declaredAnnotation.value();
 
-
             switch (cacheUpdate) {
                 //id 删除行缓存
                 case ID:
-                    delRowCache(target, tableName);
-                    break;
-                // 删除行缓存
                 case TARGET:
                     delRowCache(target, tableName);
                     break;
                 //删除表缓存
                 case WRAPPER:
-                    delTableCache(tableName);
-                    break;
-                //删除表缓存
                 case BATCH:
                     delTableCache(tableName);
                     break;
@@ -163,8 +159,8 @@ public class CacheAop {
         field.setAccessible(true);
         Object idValue = field.get(target);
         String topKey = "cacheMap:" + tableName + ":id:" + idValue;
-        Set<String> set = redisTemplate.opsForSet().members(topKey);
-        for (String o : set) {
+        Set<Object> set = redisTemplate.opsForSet().members(topKey);
+        for (Object o : set) {
             String key = "cache:" + tableName + ":" + o;
             Boolean delete = redisTemplate.delete(key);
             System.out.println("is de: " + delete);
@@ -182,8 +178,8 @@ public class CacheAop {
     }
 
     private void delAllCache() {
-        Set keys = redisTemplate.keys("cache:*");
-        Set MapKeys = redisTemplate.keys("cacheMap:*");
+        Set<String> keys = redisTemplate.keys("cache:*");
+        Set<String> MapKeys = redisTemplate.keys("cacheMap:*");
         keys.addAll(MapKeys);
         long deleteCount = redisTemplate.delete(keys);
         System.out.println("del keys =>>" + deleteCount);

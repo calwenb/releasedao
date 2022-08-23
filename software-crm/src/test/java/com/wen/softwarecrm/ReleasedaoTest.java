@@ -14,6 +14,6 @@ public class ReleasedaoTest {
 
     @Test
     void get() {
-        System.out.println(baseMapper.selectTarget(User.class));
+        System.out.println(baseMapper.getList(User.class));
     }
 }

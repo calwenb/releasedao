@@ -33,7 +33,6 @@ public class MapperUtil {
      * @author calwen
      * @since 2022/7/14
      */
-
     public static <T> Field[] parseField(Class<T> targetClass) {
         Field[] fields = targetClass.getDeclaredFields();
         fields = Arrays.stream(fields).filter((f) -> {
@@ -112,7 +111,7 @@ public class MapperUtil {
             return true;
         }).forEach(f -> {
             String objectField = f.getName();
-            String sqlField = null;
+            String sqlField;
             FieldName anno = f.getDeclaredAnnotation(FieldName.class);
             if (anno != null && !StringUtils.isNullOrEmpty(anno.value())) {
                 sqlField = anno.value();
@@ -155,7 +154,7 @@ public class MapperUtil {
      * @since 2022/7/9
      */
     public static <T> Object getTarget(ResultSet rs, Map<String, String> resultMap, Class<T> targetClass, SelectTypeEnum type) throws SQLException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchMethodException {
-        ArrayList<T> targets = new ArrayList<>();
+        List<T> list = new ArrayList<>();
         //获得 对象属性数组，类构造器,字段映射
         Field[] fields = targetClass.getDeclaredFields();
         Constructor<T> classCon = MapperUtil.getConstructor(targetClass);
@@ -170,13 +169,13 @@ public class MapperUtil {
             if (type == SelectTypeEnum.ONE) {
                 return target;
             }
-            targets.add(target);
+            list.add(target);
         }
         // 集合返回则不能返回null
         if (SelectTypeEnum.ALL.equals(type)) {
-            return targets;
+            return list;
         }
-        return targets.isEmpty() ? null : targets;
+        return list.isEmpty() ? null : list;
     }
 
     /**
