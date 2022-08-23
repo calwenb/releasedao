@@ -36,7 +36,7 @@ releaseDao（ORM），含义：释放dao层，通过APi+注解的形式轻松操
 <dependency>
     <groupId>io.github.calwenb</groupId>
     <artifactId>releasedao-spring-boot-starter</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.x</version>
 </dependency>
 ```
 
@@ -66,27 +66,27 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public Client get(Integer id) {
-        return baseMapper.selectTargetById(Client.class, id);
+        return baseMapper.getById(Client.class, id);
     }
 
     @Override
     public List<Client> list(ClientFindDto findDto) {
-        return baseMapper.selectList(Client.class);
+        return baseMapper.getList(Client.class);
     }
 
     @Override
     public void add(Client client) {
-        baseMapper.insertTarget(client);
+        baseMapper.add(client);
     }
 
     @Override
     public void update(Integer id, Client client) {
-        baseMapper.replaceTarget(client);
+        baseMapper.save(client);
     }
 
     @Override
     public void del(Integer id) {
-        baseMapper.deleteTargetById(Client.class, id);
+        baseMapper.deleteById(Client.class, id);
     }
 }
 ```
