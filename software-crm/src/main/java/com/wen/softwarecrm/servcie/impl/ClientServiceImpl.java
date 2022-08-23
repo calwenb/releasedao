@@ -22,26 +22,26 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public Client get(Integer id) {
-        return baseMapper.selectTargetById(Client.class, id);
+        return baseMapper.getById(Client.class, id);
     }
 
     @Override
     public List<Client> list(ClientFindDto findDto) {
-        return baseMapper.selectList(Client.class);
+        return baseMapper.getList(Client.class);
     }
 
     @Override
     public void add(Client client) {
-        baseMapper.insertTarget(client);
+        baseMapper.add(client);
     }
 
     @Override
     public void update(Integer id, Client client) {
-        baseMapper.replaceTarget(client);
+        baseMapper.save(client);
     }
 
     @Override
     public void del(Integer id) {
-        baseMapper.deleteTargetById(Client.class, id);
+        baseMapper.deleteById(Client.class, id);
     }
 }

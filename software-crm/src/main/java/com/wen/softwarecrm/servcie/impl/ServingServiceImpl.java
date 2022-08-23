@@ -17,27 +17,27 @@ public class ServingServiceImpl implements ServingService {
     @Override
     public int add(Serving serving) {
         serving.setCreateTime(new Date());
-        return baseMapper.insertTarget(serving);
+        return baseMapper.add(serving);
     }
 
     @Override
     public int delete(Integer id) {
-        return baseMapper.deleteTargetById(Serving.class, id);
+        return baseMapper.deleteById(Serving.class, id);
     }
 
     @Override
     public int update(Serving serving) {
 
-        return baseMapper.replaceTarget(serving);
+        return baseMapper.save(serving);
     }
 
     @Override
     public Serving get(Integer id) {
-        return baseMapper.selectTargetById(Serving.class, id);
+        return baseMapper.getById(Serving.class, id);
     }
 
     @Override
     public List<Serving> list() {
-        return baseMapper.selectList(Serving.class);
+        return baseMapper.getList(Serving.class);
     }
 }

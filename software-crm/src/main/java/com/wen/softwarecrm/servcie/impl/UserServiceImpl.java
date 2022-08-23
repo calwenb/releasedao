@@ -28,7 +28,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User login(String loginName, String pwd) {
         QueryWrapper wrapper = new QueryWrapper().eq("login_name", loginName).eq("password", pwd);
-        return baseMapper.selectTarget(User.class, wrapper);
+        return baseMapper.get(User.class, wrapper);
     }
 
     /**
@@ -37,7 +37,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public User get(Integer id) {
-        return baseMapper.selectTargetById(User.class, id);
+        return baseMapper.getById(User.class, id);
     }
 
     @Override
@@ -47,7 +47,7 @@ public class UserServiceImpl implements UserService {
         user.setUserType(10);
         user.setRegisterTime(new Date());
         try {
-            baseMapper.insertTarget(user);
+            baseMapper.add(user);
         } catch (Exception e) {
             e.printStackTrace();
             throw new FailException("账号已存在");
@@ -57,7 +57,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void changePassword(Integer id, String oldpdw, String newpdw) {
-        User user = baseMapper.selectTargetById(User.class, id);
+        User user = baseMapper.getById(User.class, id);
         if (user == null) {
             throw new FailException("用户不存在");
         }
@@ -65,12 +65,12 @@ public class UserServiceImpl implements UserService {
             throw new FailException("密码错误");
         }
         user.setPassword(newpdw);
-        baseMapper.replaceTarget(user);
+        baseMapper.save(user);
     }
 
     @Override
     public void update(User user) {
-        baseMapper.replaceTarget(user);
+        baseMapper.save(user);
     }
 
 }

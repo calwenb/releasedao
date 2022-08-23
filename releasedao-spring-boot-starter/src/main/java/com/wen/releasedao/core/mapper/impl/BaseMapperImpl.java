@@ -51,28 +51,28 @@ public class BaseMapperImpl implements BaseMapper {
     public String pstLog;
 
     @Override
-    public <T> Integer selectCount(Class<T> targetClass, QueryWrapper wrapper) {
+    public <T> Integer getCount(Class<T> targetClass, QueryWrapper wrapper) {
         return (Integer) baseSelect(targetClass, wrapper, SelectTypeEnum.COUNT);
     }
 
     @Override
-    public <T> Integer selectCount(Class<T> targetClass) {
+    public <T> Integer getCount(Class<T> targetClass) {
         return (Integer) baseSelect(targetClass, null, SelectTypeEnum.COUNT);
     }
 
     @Override
-    public <T> ArrayList<T> selectList(Class<T> targetClass, QueryWrapper wrapper) {
+    public <T> ArrayList<T> getList(Class<T> targetClass, QueryWrapper wrapper) {
         return (ArrayList<T>) baseSelect(targetClass, wrapper, SelectTypeEnum.ALL);
 
     }
 
     @Override
-    public <T> ArrayList<T> selectList(Class<T> targetClass) {
+    public <T> ArrayList<T> getList(Class<T> targetClass) {
         return (ArrayList<T>) baseSelect(targetClass, null, SelectTypeEnum.ALL);
     }
 
     @CacheQuery
-    public <T> T selectTarget(Class<T> targetClass, QueryWrapper wrapper) {
+    public <T> T get(Class<T> targetClass, QueryWrapper wrapper) {
         return (T) baseSelect(targetClass, wrapper, SelectTypeEnum.ONE);
     }
 
@@ -84,19 +84,19 @@ public class BaseMapperImpl implements BaseMapper {
      */
     @CacheQuery
     @Override
-    public <T> T selectTargetById(Class<T> targetClass, Object id) {
+    public <T> T getById(Class<T> targetClass, Object id) {
         QueryWrapper wrapper = new QueryWrapper();
         wrapper.eq(MapperUtil.parseId(targetClass), id);
         return (T) baseSelect(targetClass, wrapper, SelectTypeEnum.ONE);
     }
 
     @Override
-    public <T> T selectTarget(Class<T> targetClass) {
+    public <T> T get(Class<T> targetClass) {
         return (T) baseSelect(targetClass, null, SelectTypeEnum.ONE);
     }
 
 
-    public <T> int insertTarget(T target) {
+    public <T> int add(T target) {
         return baseSave(target, "INSERT");
     }
 
@@ -106,12 +106,12 @@ public class BaseMapperImpl implements BaseMapper {
      * @return
      */
     @Override
-    public <T> int insertBatchTarget(List<T> targetList) {
+    public <T> int addBatch(List<T> targetList) {
         return baseBatchSave(targetList, "INSERT");
     }
 
     @CacheUpdate(CacheUpdateEnum.TARGET)
-    public <T> int replaceTarget(T target) {
+    public <T> int replace(T target) {
         return baseSave(target, "REPLACE");
     }
 
@@ -122,13 +122,13 @@ public class BaseMapperImpl implements BaseMapper {
      */
     @CacheUpdate(CacheUpdateEnum.BATCH)
     @Override
-    public <T> int replaceBatchTarget(List<T> targetList) {
+    public <T> int replaceBatch(List<T> targetList) {
         return baseBatchSave(targetList, "REPLACE");
     }
 
     @CacheUpdate(CacheUpdateEnum.TARGET)
     public <T> int save(T target) {
-        return replaceTarget(target);
+        return replace(target);
     }
 
     /**
@@ -138,8 +138,8 @@ public class BaseMapperImpl implements BaseMapper {
      */
     @CacheUpdate(CacheUpdateEnum.BATCH)
     @Override
-    public <T> int batchSave(List<T> targetList) {
-        return replaceBatchTarget(targetList);
+    public <T> int saveBatch(List<T> targetList) {
+        return replaceBatch(targetList);
     }
 
 
@@ -172,7 +172,7 @@ public class BaseMapperImpl implements BaseMapper {
 
 
     @CacheUpdate(CacheUpdateEnum.WRAPPER)
-    public <T> int deleteTarget(Class<T> targetClass, QueryWrapper queryWrapper) {
+    public <T> int delete(Class<T> targetClass, QueryWrapper queryWrapper) {
 
         try {
             conn = dataSource.getConnection();
@@ -225,14 +225,14 @@ public class BaseMapperImpl implements BaseMapper {
      * @return
      */
     @Override
-    public <T> int deleteTargetById(Class<T> targetClass, Integer id) {
+    public <T> int deleteById(Class<T> targetClass, Integer id) {
         QueryWrapper wrapper = new QueryWrapper();
         wrapper.eq(MapperUtil.parseId(targetClass), id);
-        return deleteTarget(targetClass, wrapper);
+        return delete(targetClass, wrapper);
     }
 
     @CacheUpdate(CacheUpdateEnum.WRAPPER)
-    public <T> int updateTarget(Class<T> targetClass, SetWrapper setWrapper, QueryWrapper queryWrapper) {
+    public <T> int update(Class<T> targetClass, SetWrapper setWrapper, QueryWrapper queryWrapper) {
 
         try {
             conn = dataSource.getConnection();
