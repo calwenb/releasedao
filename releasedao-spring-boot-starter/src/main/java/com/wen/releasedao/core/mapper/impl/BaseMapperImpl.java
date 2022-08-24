@@ -121,14 +121,14 @@ public class BaseMapperImpl implements BaseMapper {
     }
 
 
-    public <T> List<T> selectSQL(Class<T> tClass, String sql, Object[] setSqls) {
+    public <T> List<T> selectSQL(Class<T> tClass, String sql, Object[] setSql) {
         try {
             //执行查询
             PreparedStatement pst = conn.prepareStatement(sql);
             Map<String, String> resultMap = MapperUtil.resultMap(tClass);
             //需要设值时
-            for (int i = 0; setSqls != null && i < setSqls.length; i++) {
-                pst.setObject(i + 1, setSqls[i]);
+            for (int i = 0; setSql != null && i < setSql.length; i++) {
+                pst.setObject(i + 1, setSql[i]);
             }
             pstLog = String.valueOf(pst);
             ResultSet rs = pst.executeQuery();
@@ -243,15 +243,15 @@ public class BaseMapperImpl implements BaseMapper {
 
     @CacheUpdate(CacheUpdateEnum.OTHER)
     @Override
-    public <T> boolean exeSQL(String sql, Object[] setSqls) {
+    public <T> boolean exeSQL(String sql, Object[] setSql) {
 
         try {
 
             //执行查询
             PreparedStatement pst = conn.prepareStatement(sql);
             //设值
-            for (int i = 0; setSqls != null && i < setSqls.length; i++) {
-                pst.setObject(i + 1, setSqls[i]);
+            for (int i = 0; setSql != null && i < setSql.length; i++) {
+                pst.setObject(i + 1, setSql[i]);
             }
             pstLog = String.valueOf(pst);
             return pst.execute();
