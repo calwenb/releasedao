@@ -146,18 +146,18 @@ public interface BaseMapper {
      * 自定义 执行sql
      *
      * @param sql     sql语句
-     * @param setSql ?设置，预编译
+     * @param values ?设置，预编译
      */
-    <T> boolean exeSQL(String sql, Object[] setSql);
+    <T> boolean exeSQL(String sql, Object[] values);
 
     /**
      * 执行 自定义sql查询
      *
      * @param sql         要执行的sql
-     * @param setSql     ?设置，预编译
+     * @param values     ?设置，预编译
      * @param tClass 目标类型
      * @return 结果集
      */
-    <T> List<T> selectSQL(Class<T> tClass,String sql, Object[] setSql);
+    <T> List<T> selectSQL(Class<T> tClass,String sql, Object[] values);
 
 }

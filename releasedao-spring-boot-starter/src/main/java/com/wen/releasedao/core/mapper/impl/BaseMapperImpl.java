@@ -3,6 +3,7 @@ package com.wen.releasedao.core.mapper.impl;
 import com.mysql.cj.util.StringUtils;
 import com.wen.releasedao.core.annotation.CacheQuery;
 import com.wen.releasedao.core.annotation.CacheUpdate;
+import com.wen.releasedao.core.bo.Logger;
 import com.wen.releasedao.core.enums.CacheUpdateEnum;
 import com.wen.releasedao.core.enums.SelectTypeEnum;
 import com.wen.releasedao.core.exception.SqlException;
@@ -11,6 +12,7 @@ import com.wen.releasedao.core.util.MapperUtil;
 import com.wen.releasedao.core.wrapper.QueryWrapper;
 import com.wen.releasedao.core.wrapper.SetWrapper;
 import com.wen.releasedao.util.CastUtil;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -28,12 +30,19 @@ import java.util.stream.Collectors;
  * @author calwen
  * @since 2022 /7/9
  */
-//@SuppressWarnings("unchecked")
+@SuppressWarnings("unchecked")
+@Slf4j
 public class BaseMapperImpl implements BaseMapper {
     /**
-     * 数据库连接 AOP自动管理连接
+     * 数据库连接 AOP 自动管理连接
      */
     private Connection conn;
+
+    /**
+     * 日志er aop管理
+     */
+    private Logger logger;
+
     /**
      * PreparedStatement sql 日志
      * AOP输出日志
@@ -120,32 +129,31 @@ public class BaseMapperImpl implements BaseMapper {
         return replaceBatch(targetList);
     }
 
-
-    public <T> List<T> selectSQL(Class<T> tClass, String sql, Object[] setSql) {
+    @Override
+    public <T> List<T> selectSQL(Class<T> tClass, String sql, Object[] values) {
         try {
+            logger.logSqlAndValue(sql, values);
             //执行查询
             PreparedStatement pst = conn.prepareStatement(sql);
             Map<String, String> resultMap = MapperUtil.resultMap(tClass);
             //需要设值时
-            for (int i = 0; setSql != null && i < setSql.length; i++) {
-                pst.setObject(i + 1, setSql[i]);
+            for (int i = 0; values != null && i < values.length; i++) {
+                pst.setObject(i + 1, values[i]);
             }
-            pstLog = String.valueOf(pst);
+            logger.logPst(pst);
             ResultSet rs = pst.executeQuery();
             return (List<T>) MapperUtil.getTarget(rs, resultMap, tClass, null);
         } catch (Exception e) {
-            System.out.println("===============\n 发生错误！！！ \n SQL==>" + pstLog);
+            logger.logError("发生了异常", e);
             throw new RuntimeException(e);
         }
 
     }
 
-
+    @Override
     @CacheUpdate(CacheUpdateEnum.WRAPPER)
     public <T> int delete(Class<T> tClass, QueryWrapper queryWrapper) {
-
         try {
-
             //删除必须指定条件，否则会全表删除
             if (queryWrapper == null) {
                 System.out.println("删除必须指定条件，否则会全表删除!!!");
@@ -190,6 +198,7 @@ public class BaseMapperImpl implements BaseMapper {
         return delete(tClass, wrapper);
     }
 
+    @Override
     @CacheUpdate(CacheUpdateEnum.WRAPPER)
     public <T> int update(Class<T> tClass, SetWrapper setWrapper, QueryWrapper queryWrapper) {
 
@@ -241,17 +250,17 @@ public class BaseMapperImpl implements BaseMapper {
         }
     }
 
-    @CacheUpdate(CacheUpdateEnum.OTHER)
     @Override
-    public <T> boolean exeSQL(String sql, Object[] setSql) {
+    @CacheUpdate(CacheUpdateEnum.OTHER)
+    public <T> boolean exeSQL(String sql, Object[] values) {
 
         try {
 
             //执行查询
             PreparedStatement pst = conn.prepareStatement(sql);
             //设值
-            for (int i = 0; setSql != null && i < setSql.length; i++) {
-                pst.setObject(i + 1, setSql[i]);
+            for (int i = 0; values != null && i < values.length; i++) {
+                pst.setObject(i + 1, values[i]);
             }
             pstLog = String.valueOf(pst);
             return pst.execute();
