@@ -5,14 +5,21 @@ import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 
+/**
+ * 异常处理AOP
+ *
+ * @author calwen
+ * @since 2022/8/24
+ */
 @Aspect
 @Slf4j
 public class ExceptionAop {
     @Pointcut("execution(public * com.wen.releasedao.core.mapper.BaseMapper.*(..))")
     private void pointcut() {
     }
-    @AfterThrowing(pointcut = "pointcut()",throwing = "e")
-    public void a(Throwable e){
+
+    @AfterThrowing(pointcut = "pointcut()", throwing = "e")
+    public void a(Throwable e) {
 
     }
 

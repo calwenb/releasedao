@@ -11,6 +11,12 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 
+/**
+ * 连接Aop，
+ * 为Mapper 获取Connection，关闭Connection
+ * @author calwen
+ * @since 2022/8/24
+ */
 @Aspect
 @Slf4j
 public class ConnectionAop {

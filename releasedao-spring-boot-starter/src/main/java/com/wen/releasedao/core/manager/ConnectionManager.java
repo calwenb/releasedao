@@ -20,7 +20,7 @@ import java.sql.SQLException;
  */
 @Component
 public class ConnectionManager {
-    static DataSource dataSource;
+    private static DataSource dataSource;
     @Resource
     ApplicationContext context;
 
@@ -38,8 +38,6 @@ public class ConnectionManager {
     /**
      * 获取连接<br>
      * 尝试从spring事务中获取连接,否则直接从dataSource获取将不受spring事务。
-     *
-     * @return 连接
      */
     public static Connection getConn() {
         Connection conn;
@@ -58,7 +56,8 @@ public class ConnectionManager {
 
     /**
      * 关闭连接，若为事务连接不必关闭<br>
-     * releaseConnection：源码It's the transactional Connection: Don't close it.
+     * DataSourceUtils.doReleaseConnection 源码：<br>
+     * It's the transactional Connection: Don't close it.
      */
     public static void close() {
         try {

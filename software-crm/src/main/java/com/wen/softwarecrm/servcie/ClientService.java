@@ -16,4 +16,5 @@ public interface ClientService {
     void update(Integer id, Client client);
 
     void del(Integer id);
+    void transactional();
 }
