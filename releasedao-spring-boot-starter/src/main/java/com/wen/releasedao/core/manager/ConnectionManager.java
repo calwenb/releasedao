@@ -2,6 +2,7 @@ package com.wen.releasedao.core.manager;
 
 import com.wen.releasedao.core.exception.SqlException;
 import org.springframework.context.ApplicationContext;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -34,25 +35,36 @@ public class ConnectionManager {
      */
     private static final ThreadLocal<Connection> threadLocal = new ThreadLocal<>();
 
+    /**
+     * 获取连接<br>
+     * 尝试从spring事务中获取连接,否则直接从dataSource获取将不受spring事务。
+     *
+     * @return 连接
+     */
     public static Connection getConn() {
+        Connection conn;
         try {
-            Connection conn = threadLocal.get();
+            conn = threadLocal.get();
             if (conn == null) {
-                conn = dataSource.getConnection();
+                conn = DataSourceUtils.doGetConnection(dataSource);
                 threadLocal.set(conn);
             }
-            return conn;
         } catch (SQLException e) {
             e.printStackTrace();
             throw new SqlException("Connection 获取失败");
         }
+        return conn;
     }
 
+    /**
+     * 关闭连接，若为事务连接不必关闭<br>
+     * releaseConnection：源码It's the transactional Connection: Don't close it.
+     */
     public static void close() {
         try {
             Connection conn = threadLocal.get();
             if (conn != null && !conn.isClosed()) {
-                conn.close();
+                DataSourceUtils.doReleaseConnection(conn, dataSource);
             }
         } catch (SQLException e) {
             e.printStackTrace();
