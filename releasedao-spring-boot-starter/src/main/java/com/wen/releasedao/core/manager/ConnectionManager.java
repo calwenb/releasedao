@@ -12,7 +12,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
- * sql连接管理类
+ * sql连接 Manager管家
  * 获取、释放连接
  *
  * @author calwen

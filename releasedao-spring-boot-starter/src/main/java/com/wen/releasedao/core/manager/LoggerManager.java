@@ -3,7 +3,7 @@ package com.wen.releasedao.core.manager;
 import com.wen.releasedao.core.bo.Logger;
 
 /**
- * 日志记录工具人
+ * 日志记录 Manager管家
  *
  * @author calwen
  * @since 2022/8/24

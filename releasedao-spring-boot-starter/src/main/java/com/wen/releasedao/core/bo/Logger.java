@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 日志业务 对象
+ * 日志 业务对象（BO）
  *
  * @author calwen
  * @since 2022/8/24

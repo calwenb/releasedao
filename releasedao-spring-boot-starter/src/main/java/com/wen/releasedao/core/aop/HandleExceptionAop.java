@@ -20,8 +20,7 @@ import org.springframework.core.annotation.Order;
 @Order
 public class HandleExceptionAop {
     @Pointcut("execution(public * com.wen.releasedao.core.mapper.BaseMapper.*(..))")
-    private void pointcut() {
-    }
+    private void pointcut() {}
 
     @AfterThrowing(pointcut = "pointcut()", throwing = "e")
     public void handle(Throwable e) {
