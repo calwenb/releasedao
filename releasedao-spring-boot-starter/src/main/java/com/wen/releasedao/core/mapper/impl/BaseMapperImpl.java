@@ -5,8 +5,9 @@ import com.wen.releasedao.core.annotation.CacheQuery;
 import com.wen.releasedao.core.annotation.CacheUpdate;
 import com.wen.releasedao.core.bo.Logger;
 import com.wen.releasedao.core.enums.CacheUpdateEnum;
+import com.wen.releasedao.core.enums.SaveTypeEnum;
 import com.wen.releasedao.core.enums.SelectTypeEnum;
-import com.wen.releasedao.core.exception.SqlException;
+import com.wen.releasedao.core.exception.MapperException;
 import com.wen.releasedao.core.mapper.BaseMapper;
 import com.wen.releasedao.core.util.MapperUtil;
 import com.wen.releasedao.core.wrapper.QueryWrapper;
@@ -15,7 +16,6 @@ import com.wen.releasedao.util.CastUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -39,236 +39,223 @@ public class BaseMapperImpl implements BaseMapper {
     private Connection conn;
 
     /**
-     * 日志er aop管理
+     * 日志工具人 AOP管理
      */
     private Logger logger;
 
-    /**
-     * PreparedStatement sql 日志
-     * AOP输出日志
-     */
-    public String pstLog;
 
     @Override
-    public <T> int getCount(Class<T> tClass, QueryWrapper wrapper) {
-        return (int) baseSelect(tClass, wrapper, SelectTypeEnum.COUNT);
+    public <T> int getCount(Class<T> eClass, QueryWrapper wrapper) {
+        return (int) baseSelect(eClass, wrapper, SelectTypeEnum.COUNT);
     }
 
     @Override
-    public <T> int getCount(Class<T> tClass) {
-        return (int) baseSelect(tClass, null, SelectTypeEnum.COUNT);
+    public <T> int getCount(Class<T> eClass) {
+        return (int) baseSelect(eClass, null, SelectTypeEnum.COUNT);
     }
 
     @Override
 
-    public <T> List<T> getList(Class<T> tClass, QueryWrapper wrapper) {
-        return (List<T>) baseSelect(tClass, wrapper, SelectTypeEnum.ALL);
+    public <T> List<T> getList(Class<T> eClass, QueryWrapper wrapper) {
+        return (List<T>) baseSelect(eClass, wrapper, SelectTypeEnum.ALL);
 
     }
 
     @Override
 
-    public <T> List<T> getList(Class<T> tClass) {
-        return (List<T>) baseSelect(tClass, null, SelectTypeEnum.ALL);
+    public <T> List<T> getList(Class<T> eClass) {
+        return (List<T>) baseSelect(eClass, null, SelectTypeEnum.ALL);
     }
 
     @Override
     @CacheQuery
 
-    public <T> T get(Class<T> tClass, QueryWrapper wrapper) {
-        return (T) baseSelect(tClass, wrapper, SelectTypeEnum.ONE);
+    public <T> T get(Class<T> eClass, QueryWrapper wrapper) {
+        return (T) baseSelect(eClass, wrapper, SelectTypeEnum.ONE);
     }
 
 
     @Override
     @CacheQuery
 
-    public <T> T getById(Class<T> tClass, Object id) {
+    public <T> T getById(Class<T> eClass, Object id) {
         QueryWrapper wrapper = new QueryWrapper();
-        wrapper.eq(MapperUtil.parseId(tClass), id);
-        return (T) baseSelect(tClass, wrapper, SelectTypeEnum.ONE);
+        wrapper.eq(MapperUtil.parseId(eClass), id);
+        return (T) baseSelect(eClass, wrapper, SelectTypeEnum.ONE);
     }
 
     @Override
 
-    public <T> T get(Class<T> tClass) {
-        return (T) baseSelect(tClass, null, SelectTypeEnum.ONE);
+    public <T> T get(Class<T> eClass) {
+        return (T) baseSelect(eClass, null, SelectTypeEnum.ONE);
     }
 
     @Override
-    public <T> int add(T target) {
-        return baseSave(target, "INSERT");
+    public <T> int add(T entity) {
+        return baseSave(entity, SaveTypeEnum.INSERT);
     }
 
 
     @Override
-    public <T> int addBatch(List<T> targetList) {
-        return baseBatchSave(targetList, "INSERT");
+    public <T> int addBatch(List<T> entityList) {
+        return baseBatchSave(entityList, SaveTypeEnum.INSERT);
     }
 
     @Override
-    @CacheUpdate(CacheUpdateEnum.TARGET)
-    public <T> int replace(T target) {
-        return baseSave(target, "REPLACE");
-    }
-
-    @Override
-    @CacheUpdate(CacheUpdateEnum.BATCH)
-    public <T> int replaceBatch(List<T> targetList) {
-        return baseBatchSave(targetList, "REPLACE");
-    }
-
-    @CacheUpdate(CacheUpdateEnum.TARGET)
-    public <T> int save(T target) {
-        return replace(target);
+    @CacheUpdate(CacheUpdateEnum.ENTITY)
+    public <T> int replace(T entity) {
+        return baseSave(entity, SaveTypeEnum.REPLACE);
     }
 
     @Override
     @CacheUpdate(CacheUpdateEnum.BATCH)
-    public <T> int saveBatch(List<T> targetList) {
-        return replaceBatch(targetList);
+    public <T> int replaceBatch(List<T> entityList) {
+        return baseBatchSave(entityList, SaveTypeEnum.REPLACE);
+    }
+
+    @CacheUpdate(CacheUpdateEnum.ENTITY)
+    public <T> int save(T entity) {
+        return replace(entity);
     }
 
     @Override
-    public <T> List<T> selectSQL(Class<T> tClass, String sql, Object[] values) {
+    @CacheUpdate(CacheUpdateEnum.BATCH)
+    public <T> int saveBatch(List<T> entityList) {
+        return replaceBatch(entityList);
+    }
+
+    @Override
+    public <T> List<T> selectSQL(Class<T> eClass, String sql, Object[] values) {
+        PreparedStatement pst = null;
         try {
-            logger.logSqlAndValue(sql, values);
-            //执行查询
-            PreparedStatement pst = conn.prepareStatement(sql);
-            Map<String, String> resultMap = MapperUtil.resultMap(tClass);
-            //需要设值时
+            pst = conn.prepareStatement(sql);
+            Map<String, String> resultMap = MapperUtil.resultMap(eClass);
             for (int i = 0; values != null && i < values.length; i++) {
                 pst.setObject(i + 1, values[i]);
             }
-            logger.logPst(pst);
             ResultSet rs = pst.executeQuery();
-            return (List<T>) MapperUtil.getTarget(rs, resultMap, tClass, null);
+            return (List<T>) MapperUtil.getEntity(rs, resultMap, eClass, null);
         } catch (Exception e) {
-            logger.logError("发生了异常", e);
-            throw new RuntimeException(e);
+            throw new MapperException("自定义查询SQL 时异常", e);
+        } finally {
+            logger.log(pst, sql, values);
         }
 
     }
 
     @Override
     @CacheUpdate(CacheUpdateEnum.WRAPPER)
-    public <T> int delete(Class<T> tClass, QueryWrapper queryWrapper) {
+    public <T> int delete(Class<T> eClass, QueryWrapper queryWrapper) {
+        PreparedStatement pst = null;
+        String sql = "";
+        List<Object> values = new ArrayList<>();
         try {
             //删除必须指定条件，否则会全表删除
             if (queryWrapper == null) {
-                System.out.println("删除必须指定条件，否则会全表删除!!!");
-                return 0;
+                throw new MapperException("删除必须查询条件，否则会全表删除!!!");
             }
-
             //条件查询，解析where sql
             HashMap<String, Object> wrapperResult = queryWrapper.getResult();
             String whereSQL = String.valueOf(wrapperResult.get("sql"));
-            List<Object> setFields = CastUtil.castList(wrapperResult.get("setSQL"), Object.class);
-            if ("".equals(whereSQL)) {
-                System.out.println("删除必须指定条件，否则会全表删除!!!");
-                return 0;
+            values = CastUtil.castList(wrapperResult.get("values"), Object.class);
+            if (StringUtils.isNullOrEmpty(whereSQL)) {
+                throw new MapperException("删除必须查询条件，否则会全表删除!!!");
             }
 
-            String tableName = MapperUtil.parseTableName(tClass);
+            String tableName = MapperUtil.parseTableName(eClass);
 
-            StringBuilder sql = new StringBuilder();
-            sql.append("DELETE FROM ").append(tableName);
-            sql.append(whereSQL);
+            sql = "DELETE FROM " + tableName + whereSQL;
 
             //执行查询
-            PreparedStatement pst = conn.prepareStatement(String.valueOf(sql));
+            pst = conn.prepareStatement(sql);
 
             // 占位符设值
-            for (int i = 0; setFields != null && i < setFields.size(); i++) {
-                pst.setObject(i + 1, setFields.get(i));
+            for (int i = 0; values != null && i < values.size(); i++) {
+                pst.setObject(i + 1, values.get(i));
             }
-            pstLog = String.valueOf(pst);
             return pst.executeUpdate();
         } catch (SQLException e) {
-            System.out.println("===============\n 发生错误！！！ \n SQL==>" + pstLog);
-            throw new RuntimeException(e);
+            throw new MapperException("delete 时异常", e);
+        } finally {
+            logger.log(pst, sql, values);
         }
     }
 
 
     @Override
-    public <T> int deleteById(Class<T> tClass, Integer id) {
+    public <T> int deleteById(Class<T> eClass, Integer id) {
         QueryWrapper wrapper = new QueryWrapper();
-        wrapper.eq(MapperUtil.parseId(tClass), id);
-        return delete(tClass, wrapper);
+        wrapper.eq(MapperUtil.parseId(eClass), id);
+        return delete(eClass, wrapper);
     }
 
     @Override
     @CacheUpdate(CacheUpdateEnum.WRAPPER)
-    public <T> int update(Class<T> tClass, SetWrapper setWrapper, QueryWrapper queryWrapper) {
-
+    public <T> int update(Class<T> eClass, SetWrapper setWrapper, QueryWrapper queryWrapper) {
+        PreparedStatement pst = null;
+        String sql = "";
+        List<Object> values = new ArrayList<>();
         try {
-
             //更新必须指定条件
             if (setWrapper == null || queryWrapper == null) {
                 System.out.println("更新必须指定set,where");
                 return 0;
             }
+            HashMap<String, Object> wrapperResult;
             //条件查询，解析where sql
-            HashMap<String, Object> wrapperResult = queryWrapper.getResult();
+            wrapperResult = queryWrapper.getResult();
             String whereSQL = String.valueOf(wrapperResult.get("sql"));
-            List<Object> setWhereSQL = CastUtil.castList(wrapperResult.get("setSQL"), Object.class);
+            List<Object> whereValues = CastUtil.castList(wrapperResult.get("values"), Object.class);
 
             //条件查询，解析set sql
             wrapperResult = setWrapper.getResult();
-            String setSQL = String.valueOf(wrapperResult.get("sql"));
-            List<Object> setSetSQL = CastUtil.castList(wrapperResult.get("setSQL"), Object.class);
+            String setSql = String.valueOf(wrapperResult.get("sql"));
+            List<Object> setValues = CastUtil.castList(wrapperResult.get("values"), Object.class);
 
-            if ("".equals(setSQL) || "".equals(whereSQL)) {
-                System.out.println("更新必须指定set,where");
-                return 0;
+            if (StringUtils.isNullOrEmpty(setSql) || StringUtils.isNullOrEmpty(whereSQL)) {
+                throw new MapperException("更新必须指定set,where");
             }
             //解析表名
-            String tableName = MapperUtil.parseTableName(tClass);
+            String tableName = MapperUtil.parseTableName(eClass);
 
             //拼接sql
-            StringBuilder sql = new StringBuilder();
-            sql.append("UPDATE ").append(tableName);
-            sql.append(setSQL);
-            sql.append(whereSQL);
+            sql = "UPDATE " + tableName + setSql + whereSQL;
 
             //执行查询
-            PreparedStatement pst = conn.prepareStatement(String.valueOf(sql));
+            pst = conn.prepareStatement(sql);
 
             // 占位符设值
-            List<Object> setFields = new ArrayList<>();
-            setFields.addAll(setSetSQL);
-            setFields.addAll(setWhereSQL);
-            for (int i = 0; i < setFields.size(); i++) {
-                pst.setObject(i + 1, setFields.get(i));
+            values = new ArrayList<>();
+            values.addAll(setValues);
+            values.addAll(whereValues);
+            for (int i = 0; i < values.size(); i++) {
+                pst.setObject(i + 1, values.get(i));
             }
-            pstLog = String.valueOf(pst);
             return pst.executeUpdate();
         } catch (SQLException e) {
-            System.out.println("===============\n 发生错误！！！ \n SQL==>" + pstLog);
-            throw new RuntimeException(e);
+            throw new MapperException("更新 时异常", e);
+        } finally {
+            logger.log(pst, sql, values);
         }
     }
 
     @Override
     @CacheUpdate(CacheUpdateEnum.OTHER)
     public <T> boolean exeSQL(String sql, Object[] values) {
-
+        PreparedStatement pst = null;
         try {
-
             //执行查询
-            PreparedStatement pst = conn.prepareStatement(sql);
+            pst = conn.prepareStatement(sql);
             //设值
             for (int i = 0; values != null && i < values.length; i++) {
                 pst.setObject(i + 1, values[i]);
             }
-            pstLog = String.valueOf(pst);
             return pst.execute();
 
         } catch (SQLException e) {
-            System.out.println("===============\n 发生错误！！！ \n SQL==>" + pstLog);
-            throw new RuntimeException(e);
-
+            throw new MapperException("自定义执行sql 时异常", e);
+        } finally {
+            logger.log(pst, sql, values);
         }
     }
 
@@ -277,18 +264,19 @@ public class BaseMapperImpl implements BaseMapper {
      * 查询数据 base方法
      * 通过type 返回不同的结果类型
      *
-     * @param tClass  目标class
+     * @param eClass  目标class
      * @param wrapper 查询构造器
      * @param type    查询类型
-     * @author calwen
-     * @since 2022/7/14
      */
-    private <T> Object baseSelect(Class<T> tClass, QueryWrapper wrapper, SelectTypeEnum type) {
-        StringBuilder sql = null;
+    private <T> Object baseSelect(Class<T> eClass, QueryWrapper wrapper, SelectTypeEnum type) {
+
+        PreparedStatement pst = null;
+        StringBuilder sql = new StringBuilder();
+        List<Object> values = new ArrayList<>();
         try {
-            //解析表名
-            String tableName = MapperUtil.parseTableName(tClass);
-            Map<String, String> resultMap = MapperUtil.resultMap(tClass);
+            System.out.println(1/0);
+            String tableName = MapperUtil.parseTableName(eClass);
+            Map<String, String> resultMap = MapperUtil.resultMap(eClass);
             //sql拼接
             sql = new StringBuilder();
             sql.append("SELECT ");
@@ -309,167 +297,145 @@ public class BaseMapperImpl implements BaseMapper {
 
             sql.append(" FROM ").append(tableName).append(" ");
 
-            List<Object> setFields = null;
             //有Wrapper时
             if (wrapper != null) {
                 //条件查询
                 HashMap<String, Object> wrapperResult = wrapper.getResult();
                 String whereSQL = String.valueOf(wrapperResult.get("sql"));
-                setFields = CastUtil.castList(wrapperResult.get("setSQL"), Object.class);
-                if (!"".equals(whereSQL)) {
+                values = CastUtil.castList(wrapperResult.get("values"), Object.class);
+                if (!StringUtils.isNullOrEmpty(whereSQL)) {
                     sql.append(whereSQL);
                 }
             }
             //执行查询
-            PreparedStatement pst = conn.prepareStatement(String.valueOf(sql));
+            pst = conn.prepareStatement(String.valueOf(sql));
 
             //需要设值时
-            for (int i = 0; setFields != null && i < setFields.size(); i++) {
-                pst.setObject(i + 1, setFields.get(i));
+            for (int i = 0; values != null && i < values.size(); i++) {
+                pst.setObject(i + 1, values.get(i));
             }
-            pstLog = String.valueOf(pst);
             ResultSet rs = pst.executeQuery();
             // 将sql结果集解析 对象或对象集
-            return MapperUtil.getTarget(rs, resultMap, tClass, type);
-
-        } catch (SQLException | NoSuchMethodException | InstantiationException | IllegalAccessException |
-                 InvocationTargetException e) {
-            System.out.println("===============\n 发生错误！！！ \n SQL==>" + pstLog);
-            System.out.println(sql);
-            throw new RuntimeException(e);
+            return MapperUtil.getEntity(rs, resultMap, eClass, type);
+        } catch (Exception e) {
+            throw new MapperException("查询 时异常",e);
+        } finally {
+            logger.log(pst, String.valueOf(sql), values);
         }
-    }
-
-
-    private <T> int baseBatchSave(List<T> targetList, String saveType) {
-        try {
-            Class<?> tClass = targetList.get(0).getClass();
-
-            int listSize = targetList.size();
-
-            //反射获取目标信息
-            Map<String, String> resultMap = MapperUtil.resultMap(tClass);
-            //解析表名
-            String tableName = MapperUtil.parseTableName(tClass);
-
-            StringBuilder sql = new StringBuilder();
-            if ("INSERT".equals(saveType)) {
-                sql.append("INSERT INTO ");
-            } else if ("REPLACE".equals(saveType)) {
-                sql.append("REPLACE INTO ");
-            } else {
-                throw new RuntimeException("调用baseSave()方法必须指定 保存类型！！！");
-            }
-            sql.append(tableName);
-            sql.append(" ( ");
-            resultMap.forEach((k, v) -> {
-                sql.append(v).append(" , ");
-            });
-            sql.delete(sql.lastIndexOf(","), sql.length());
-            sql.append(" ) ");
-            sql.append(" VALUES ");
-
-            for (int i = 0; i < listSize; i++) {
-                sql.append(" ( ");
-                for (int j = 0; j < resultMap.size(); j++) {
-                    if (j == resultMap.size() - 1) {
-                        sql.append(" ? ");
-                        break;
-                    }
-                    sql.append(" ?, ");
-                }
-                sql.append(" ) ,");
-            }
-            sql.deleteCharAt(sql.length() - 1);
-
-            PreparedStatement pst = conn.prepareStatement(String.valueOf(sql));
-            AtomicInteger i = new AtomicInteger(1);
-            for (T target : targetList) {
-                resultMap.forEach((k, v) -> {
-                    try {
-                        Field objField = tClass.getDeclaredField(k);
-                        objField.setAccessible(true);
-                        pst.setObject(i.get(), objField.get(target));
-                        //i++
-                        i.getAndIncrement();
-                    } catch (NoSuchFieldException | IllegalAccessException | SQLException e) {
-                        System.out.println("===============\n 发生错误！！！ \n SQL==>" + pstLog);
-                        throw new RuntimeException(e);
-                    }
-                });
-            }
-            pstLog = String.valueOf(pst);
-            return pst.executeUpdate();
-        } catch (SQLException e) {
-            System.out.println("===============\n 发生错误！！！ \n SQL==>" + pstLog);
-            throw new RuntimeException(e);
-        }
-
     }
 
     /**
      * 保存数据  base方法
      * 提供saveType执行INSERT、REPLACE操作
      *
-     * @author calwen
-     * @since 2022/7/14
+     * @param entity-数据
+     * @param saveType-保存类型
      */
-    private <T> int baseSave(T target, String saveType) {
+    private <T> int baseSave(T entity, SaveTypeEnum saveType) {
+        PreparedStatement pst = null;
+        StringBuilder sql = new StringBuilder();
+        List<Object> values = new ArrayList<>();
         try {
-
-            Class<?> tClass = target.getClass();
-
-            //反射获取目标信息
-            Map<String, String> resultMap = MapperUtil.resultMap(tClass);
-            //解析表名
-            String tableName = MapperUtil.parseTableName(tClass);
-
-            StringBuilder sql = new StringBuilder();
-            if ("INSERT".equals(saveType)) {
-                sql.append("INSERT INTO ");
-            } else if ("REPLACE".equals(saveType)) {
-                sql.append("REPLACE INTO ");
-            } else {
-                throw new RuntimeException("调用baseSave()方法必须指定 保存类型！！！");
-            }
-            sql.append(tableName);
-            sql.append(" ( ");
-            resultMap.forEach((k, v) -> {
-                sql.append(v).append(" , ");
-            });
-            sql.delete(sql.lastIndexOf(","), sql.length());
+            Class<?> eClass = entity.getClass();
+            Map<String, String> resultMap = MapperUtil.resultMap(eClass);
+            System.out.println();
+            baseSaveSqlPrefix(eClass, resultMap, saveType, sql);
+            baseSaveSqlQuestion(resultMap, sql);
             sql.append(" ) ");
-            sql.append(" VALUES ");
-            sql.append(" ( ");
-            for (int i = 0; i < resultMap.size(); i++) {
-                if (i == resultMap.size() - 1) {
-                    sql.append(" ? ");
-                    break;
-                }
-                sql.append(" ?, ");
-            }
-            sql.append(" ) ");
-            PreparedStatement pst = conn.prepareStatement(String.valueOf(sql));
+            pst = conn.prepareStatement(String.valueOf(sql));
             AtomicInteger i = new AtomicInteger(1);
+            PreparedStatement finalPst = pst;
             resultMap.forEach((k, v) -> {
                 try {
-                    Field objField = tClass.getDeclaredField(k);
+                    Field objField = eClass.getDeclaredField(k);
                     objField.setAccessible(true);
-                    pst.setObject(i.get(), objField.get(target));
-                    //i++
+                    Object value = objField.get(entity);
+                    finalPst.setObject(i.get(), value);
+                    values.add(value);
                     i.getAndIncrement();
-                } catch (NoSuchFieldException | IllegalAccessException | SQLException e) {
-                    System.out.println("===============\n 发生错误！！！ \n SQL==>" + pstLog);
-                    throw new RuntimeException(e);
+                } catch (Exception e) {
+                    throw new MapperException("批量保存 预编译 时异常", e);
                 }
             });
-            pstLog = String.valueOf(pst);
             return pst.executeUpdate();
         } catch (SQLException e) {
-            System.out.println("===============\n 发生错误！！！ \n SQL==>" + pstLog);
-            throw new SqlException(" 批量保存时发生sql异常 ");
+            throw new MapperException(" 批量保存时发生sql异常 ", e);
+        } finally {
+            logger.log(pst, String.valueOf(sql), values);
         }
     }
 
 
+    /**
+     * 批量保存
+     */
+    private <T> int baseBatchSave(List<T> entityList, SaveTypeEnum saveType) {
+        PreparedStatement pst = null;
+        StringBuilder sql = new StringBuilder();
+        List<Object> values = new ArrayList<>();
+        try {
+            Class<?> eClass = entityList.get(0).getClass();
+            int listSize = entityList.size();
+            Map<String, String> resultMap = MapperUtil.resultMap(eClass);
+            baseSaveSqlPrefix(eClass, resultMap, saveType, sql);
+            for (int i = 0; i < listSize; i++) {
+                baseSaveSqlQuestion(resultMap, sql);
+                sql.append(" ) ,");
+            }
+            sql.deleteCharAt(sql.length() - 1);
+
+            pst = conn.prepareStatement(String.valueOf(sql));
+            AtomicInteger i = new AtomicInteger(1);
+            for (T entity : entityList) {
+                PreparedStatement finalPst = pst;
+                resultMap.forEach((k, v) -> {
+                    try {
+                        Field objField = eClass.getDeclaredField(k);
+                        objField.setAccessible(true);
+                        Object value = objField.get(entity);
+                        finalPst.setObject(i.get(), value);
+                        values.add(value);
+                        i.getAndIncrement();
+                    } catch (Exception e) {
+                        throw new MapperException("批量保存 预编译 时异常", e);
+                    }
+                });
+            }
+            return pst.executeUpdate();
+        } catch (SQLException e) {
+            throw new MapperException("批量保存 时异常", e);
+        } finally {
+            logger.log(pst, String.valueOf(sql), values);
+        }
+
+    }
+
+    /**
+     * baseSave sql前缀拼接
+     */
+    private void baseSaveSqlPrefix(Class<?> eClass, Map<String, String> resultMap, SaveTypeEnum saveType, StringBuilder sql) {
+        String tableName = MapperUtil.parseTableName(eClass);
+        sql.append(saveType.name()).append(" INTO ")
+                .append(tableName)
+                .append(" ( ");
+        resultMap.forEach((k, v) -> sql.append(v)
+                .append(" , "));
+        sql.delete(sql.lastIndexOf(","), sql.length())
+                .append(" ) ")
+                .append(" VALUES ");
+    }
+
+    /**
+     * baseSaveSql 问号拼接
+     */
+    private void baseSaveSqlQuestion(Map<String, String> resultMap, StringBuilder sql) {
+        sql.append(" ( ");
+        for (int i = 0; i < resultMap.size(); i++) {
+            if (i == resultMap.size() - 1) {
+                sql.append(" ? ");
+                break;
+            }
+            sql.append(" ?, ");
+        }
+    }
 }

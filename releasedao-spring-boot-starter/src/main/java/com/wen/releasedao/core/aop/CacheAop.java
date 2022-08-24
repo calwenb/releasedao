@@ -132,7 +132,7 @@ public class CacheAop {
             switch (cacheUpdate) {
                 //id 删除行缓存
                 case ID:
-                case TARGET:
+                case ENTITY:
                     delRowCache(target, tableName);
                     break;
                 //删除表缓存

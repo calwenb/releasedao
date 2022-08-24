@@ -3,6 +3,7 @@ package com.wen.releasedao.autoconfigure;
 import com.wen.releasedao.config.PropertyConfig;
 import com.wen.releasedao.core.aop.CacheAop;
 import com.wen.releasedao.core.aop.ConnectionAop;
+import com.wen.releasedao.core.aop.HandleExceptionAop;
 import com.wen.releasedao.core.aop.MapperLogAop;
 import com.wen.releasedao.core.manager.ConnectionManager;
 import com.wen.releasedao.core.mapper.BaseMapper;
@@ -24,11 +25,16 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class ReleasedaoAutoConfiguration {
-
     @Bean
     public BaseMapper baseMapper() {
         return new BaseMapperImpl();
     }
+
+    @Bean
+    public HandleExceptionAop handleExceptionAop() {
+        return new HandleExceptionAop();
+    }
+
 
     @Bean
     public ConnectionManager connectionManager() {

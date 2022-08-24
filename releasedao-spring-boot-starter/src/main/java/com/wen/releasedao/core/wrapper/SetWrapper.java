@@ -39,7 +39,7 @@ public class SetWrapper extends AbstractWrapper implements Wrapper {
             setList.add(value);
         }
         map.put("sql", whereSql);
-        map.put("setSQL", setList);
+        map.put("values", setList);
         return map;
     }
 }

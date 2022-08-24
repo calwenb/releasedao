@@ -1,11 +1,14 @@
 package com.wen.releasedao.core.aop;
 
+import com.wen.releasedao.core.bo.Logger;
+import com.wen.releasedao.core.manager.LoggerManager;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.springframework.core.annotation.Order;
 
-import java.util.List;
+import java.lang.reflect.Field;
 
 /**
  * MapperLogAop类
@@ -18,30 +21,30 @@ import java.util.List;
  */
 @Slf4j
 @Aspect
+@Order(Integer.MAX_VALUE - 1)
 public class MapperLogAop {
 
     @Around("execution(public * com.wen.releasedao.core.mapper.BaseMapper.*(..))")
     public Object printfLog(ProceedingJoinPoint joinPoint) throws Throwable {
-        System.out.println("\n===========================\n");
-        Object rs = joinPoint.proceed();
-       /* Field pstLog = joinPoint.getTarget().getClass().getDeclaredField("pstLog");
-        pstLog.setAccessible(true);
-        String outLog = "sql==> " + pstLog.get(joinPoint.getTarget());
-        System.out.println(outLog);*/
+        Object target = joinPoint.getTarget();
+        Class<?> aClass = target.getClass();
+        Field field = aClass.getDeclaredField("logger");
+        field.setAccessible(true);
+        Logger logger = LoggerManager.getLogger();
+        field.set(target, logger);
 
-        if (rs instanceof List<?>) {
-            int row = 0;
-            List<Object> rsList = (List<Object>) rs;
-            for (Object o : rsList) {
-                System.out.println("row " + (++row) + " ==> " + o);
-            }
-            System.out.println("count ==> " + row);
-        } else {
-            System.out.println("result ==> " + rs);
+        Object rs = null;
+        try {
+            rs = joinPoint.proceed();
+        } finally {
+            logger.logData(rs);
+            log.info("\n\n============\n\n");
+            logger.print();
+            log.info("\n\n============\n\n");
+            LoggerManager.remove();
         }
-        //log.info(outLog);
-        System.out.println("\n===========================\n");
         return rs;
+
     }
 
 }

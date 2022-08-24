@@ -4,6 +4,10 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.sql.PreparedStatement;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * 日志业务 对象
@@ -31,20 +35,16 @@ public class Logger<T> {
      * sql语句
      */
     private String sql;
-    /**
-     * 最后记录的sql
-     */
-    private String exeSql;
 
     private String pstStr;
     /**
      * 预编译设值
      */
-    private Object[] values;
+    private List<Object> values;
     /**
      * 是否成功
      */
-    private Boolean success;
+    private Boolean success = true;
     /**
      * 异常类
      */
@@ -54,24 +54,64 @@ public class Logger<T> {
      */
     private String errorMessage;
 
-    public void logSqlAndValue(String sql, Object[] values) {
-        this.setSql(sql)
-                .setValues(values);
+
+    public void log(PreparedStatement pst, String sql, List<Object> values) {
+        if (turnOnLogger()) {
+            this.sql = sql;
+            this.pstStr = String.valueOf(pst);
+            this.values = Optional.ofNullable(values).orElse(Collections.emptyList());
+        }
+
     }
 
-    public void logPst(PreparedStatement pst) {
-        this.setPstStr(String.valueOf(pst));
-    }
+    public void log(PreparedStatement pst, String sql, Object[] values) {
+        if (turnOnLogger()) {
+            this.sql = sql;
+            this.pstStr = String.valueOf(pst);
+            this.values = Arrays.asList(Optional.ofNullable(values).orElse(new Object[]{}));
+        }
 
-    public void logError(String message, Exception e) {
-        this.setSuccess(false)
-                .setMessage(message)
-                .setException(e.getClass().getName())
-                .setErrorMessage(e.getMessage());
     }
 
     public void logData(T data) {
-        this.data = data;
+        if (turnOnLogger()) {
+            this.data = data;
+        }
     }
+
+    public void logError(String message, Throwable e) {
+        if (turnOnLogger()) {
+            this.success = false;
+            this.message = message;
+            this.exception = e.getClass().getName();
+            this.errorMessage = e.getMessage();
+        }
+    }
+
+    /**
+     * 是否开启日志功能
+     */
+    private boolean turnOnLogger() {
+        return true;
+    }
+
+    public void print() {
+        System.out.println(format());
+    }
+
+    public String format() {
+        return "Logger{" +
+                "\n classStr='" + classStr + '\'' +
+                ", \n data=" + data +
+                ", \n message='" + message + '\'' +
+                ", \n sql='" + sql + '\'' +
+                ", \n pstStr='" + pstStr + '\'' +
+                ", \n values=" + values +
+                ", \n success=" + success +
+                ", \n exception='" + exception + '\'' +
+                ", \n errorMessage='" + errorMessage + '\'' +
+                '}';
+    }
+
 
 }

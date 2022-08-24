@@ -1,6 +1,6 @@
 package com.wen.releasedao.core.manager;
 
-import com.wen.releasedao.core.exception.SqlException;
+import com.wen.releasedao.core.exception.MapperException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Component;
@@ -33,7 +33,7 @@ public class ConnectionManager {
     /**
      * 保证线程安全
      */
-    private static final ThreadLocal<Connection> threadLocal = new ThreadLocal<>();
+    private static final ThreadLocal<Connection> connectionLocal = new ThreadLocal<>();
 
     /**
      * 获取连接<br>
@@ -42,14 +42,13 @@ public class ConnectionManager {
     public static Connection getConn() {
         Connection conn;
         try {
-            conn = threadLocal.get();
+            conn = connectionLocal.get();
             if (conn == null) {
                 conn = DataSourceUtils.doGetConnection(dataSource);
-                threadLocal.set(conn);
+                connectionLocal.set(conn);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new SqlException("Connection 获取失败");
+            throw new MapperException("Connection 获取失败", e);
         }
         return conn;
     }
@@ -61,15 +60,14 @@ public class ConnectionManager {
      */
     public static void close() {
         try {
-            Connection conn = threadLocal.get();
+            Connection conn = connectionLocal.get();
             if (conn != null && !conn.isClosed()) {
                 DataSourceUtils.doReleaseConnection(conn, dataSource);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new SqlException("Connection 关闭失败");
+            throw new MapperException("Connection 关闭失败", e);
         } finally {
-            threadLocal.remove();
+            connectionLocal.remove();
         }
     }
 

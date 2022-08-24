@@ -6,7 +6,6 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
@@ -14,6 +13,7 @@ import java.sql.Connection;
 /**
  * 连接Aop，
  * 为Mapper 获取Connection，关闭Connection
+ *
  * @author calwen
  * @since 2022/8/24
  */
@@ -25,10 +25,9 @@ public class ConnectionAop {
     }
 
     @Around("pointcut()")
-    public Object around(ProceedingJoinPoint joinPoint) {
+    public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         Connection conn;
         try {
-
             Object target = joinPoint.getTarget();
             Class<?> aClass = target.getClass();
             Field field = aClass.getDeclaredField("conn");
@@ -41,8 +40,6 @@ public class ConnectionAop {
             Object rs = joinPoint.proceed();
             field.set(target, null);
             return rs;
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
         } finally {
             ConnectionManager.close();
         }

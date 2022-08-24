@@ -155,7 +155,7 @@ public class QueryWrapper extends AbstractWrapper implements Wrapper {
         }
         whereSql.append(";");
         map.put("sql", whereSql);
-        map.put("setSQL", setList);
+        map.put("values", setList);
         return map;
     }
 
