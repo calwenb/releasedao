@@ -3,17 +3,16 @@ package com.wen.releasedao.core.mapper.impl;
 import com.mysql.cj.util.StringUtils;
 import com.wen.releasedao.core.annotation.CacheQuery;
 import com.wen.releasedao.core.annotation.CacheUpdate;
-import com.wen.releasedao.core.bo.Logger;
 import com.wen.releasedao.core.enums.CacheUpdateEnum;
 import com.wen.releasedao.core.enums.SaveTypeEnum;
 import com.wen.releasedao.core.enums.SelectTypeEnum;
 import com.wen.releasedao.core.exception.MapperException;
+import com.wen.releasedao.core.manager.LoggerManager;
 import com.wen.releasedao.core.mapper.BaseMapper;
 import com.wen.releasedao.core.util.MapperUtil;
 import com.wen.releasedao.core.wrapper.QueryWrapper;
 import com.wen.releasedao.core.wrapper.SetWrapper;
 import com.wen.releasedao.util.CastUtil;
-import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
@@ -31,17 +30,11 @@ import java.util.stream.Collectors;
  * @since 2022 /7/9
  */
 @SuppressWarnings("unchecked")
-@Slf4j
 public class BaseMapperImpl implements BaseMapper {
     /**
      * 数据库连接 AOP 自动管理连接
      */
     private Connection conn;
-
-    /**
-     * 日志工具人 AOP管理
-     */
-    private Logger logger;
 
 
     @Override
@@ -138,7 +131,7 @@ public class BaseMapperImpl implements BaseMapper {
         } catch (Exception e) {
             throw new MapperException("自定义查询SQL 时异常", e);
         } finally {
-            logger.log(pst, sql, values);
+            LoggerManager.log(pst, sql, values);
         }
 
     }
@@ -177,7 +170,7 @@ public class BaseMapperImpl implements BaseMapper {
         } catch (SQLException e) {
             throw new MapperException("delete 时异常", e);
         } finally {
-            logger.log(pst, sql, values);
+            LoggerManager.log(pst, sql, values);
         }
     }
 
@@ -235,7 +228,7 @@ public class BaseMapperImpl implements BaseMapper {
         } catch (SQLException e) {
             throw new MapperException("更新 时异常", e);
         } finally {
-            logger.log(pst, sql, values);
+            LoggerManager.log(pst, sql, values);
         }
     }
 
@@ -255,7 +248,7 @@ public class BaseMapperImpl implements BaseMapper {
         } catch (SQLException e) {
             throw new MapperException("自定义执行sql 时异常", e);
         } finally {
-            logger.log(pst, sql, values);
+            LoggerManager.log(pst, sql, values);
         }
     }
 
@@ -269,12 +262,10 @@ public class BaseMapperImpl implements BaseMapper {
      * @param type    查询类型
      */
     private <T> Object baseSelect(Class<T> eClass, QueryWrapper wrapper, SelectTypeEnum type) {
-
         PreparedStatement pst = null;
         StringBuilder sql = new StringBuilder();
         List<Object> values = new ArrayList<>();
         try {
-            System.out.println(1/0);
             String tableName = MapperUtil.parseTableName(eClass);
             Map<String, String> resultMap = MapperUtil.resultMap(eClass);
             //sql拼接
@@ -318,9 +309,9 @@ public class BaseMapperImpl implements BaseMapper {
             // 将sql结果集解析 对象或对象集
             return MapperUtil.getEntity(rs, resultMap, eClass, type);
         } catch (Exception e) {
-            throw new MapperException("查询 时异常",e);
+            throw new MapperException("查询 时异常", e);
         } finally {
-            logger.log(pst, String.valueOf(sql), values);
+            LoggerManager.log(pst, String.valueOf(sql), values);
         }
     }
 
@@ -361,7 +352,7 @@ public class BaseMapperImpl implements BaseMapper {
         } catch (SQLException e) {
             throw new MapperException(" 批量保存时发生sql异常 ", e);
         } finally {
-            logger.log(pst, String.valueOf(sql), values);
+            LoggerManager.log(pst, String.valueOf(sql), values);
         }
     }
 
@@ -405,7 +396,7 @@ public class BaseMapperImpl implements BaseMapper {
         } catch (SQLException e) {
             throw new MapperException("批量保存 时异常", e);
         } finally {
-            logger.log(pst, String.valueOf(sql), values);
+            LoggerManager.log(pst, String.valueOf(sql), values);
         }
 
     }

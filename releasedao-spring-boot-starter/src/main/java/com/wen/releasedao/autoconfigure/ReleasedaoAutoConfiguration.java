@@ -31,22 +31,6 @@ public class ReleasedaoAutoConfiguration {
     }
 
     @Bean
-    public HandleExceptionAop handleExceptionAop() {
-        return new HandleExceptionAop();
-    }
-
-
-    @Bean
-    public ConnectionManager connectionManager() {
-        return new ConnectionManager();
-    }
-
-    @Bean
-    public ConnectionAop connectionAop() {
-        return new ConnectionAop();
-    }
-
-    @Bean
     @ConditionalOnProperty(prefix = "releasedao.config", name = "logger", havingValue = "true")
     public MapperLogAop mapperLogAop() {
         return new MapperLogAop();
@@ -56,6 +40,21 @@ public class ReleasedaoAutoConfiguration {
     @ConditionalOnProperty(prefix = "releasedao.config", name = "cache")
     public CacheAop cacheAop() {
         return new CacheAop();
+    }
+
+    @Bean
+    public ConnectionAop connectionAop() {
+        return new ConnectionAop();
+    }
+
+    @Bean
+    public HandleExceptionAop handleExceptionAop() {
+        return new HandleExceptionAop();
+    }
+
+    @Bean
+    public ConnectionManager connectionManager() {
+        return new ConnectionManager();
     }
 
     @Bean

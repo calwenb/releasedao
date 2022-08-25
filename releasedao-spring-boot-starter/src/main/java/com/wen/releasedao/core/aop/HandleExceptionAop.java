@@ -1,6 +1,5 @@
 package com.wen.releasedao.core.aop;
 
-import com.wen.releasedao.core.bo.Logger;
 import com.wen.releasedao.core.exception.MapperException;
 import com.wen.releasedao.core.manager.LoggerManager;
 import lombok.extern.slf4j.Slf4j;
@@ -20,14 +19,14 @@ import org.springframework.core.annotation.Order;
 @Order
 public class HandleExceptionAop {
     @Pointcut("execution(public * com.wen.releasedao.core.mapper.BaseMapper.*(..))")
-    private void pointcut() {}
+    private void pointcut() {
+    }
 
     @AfterThrowing(pointcut = "pointcut()", throwing = "e")
     public void handle(Throwable e) {
-        Logger logger = LoggerManager.getLogger();
         if (e instanceof MapperException) {
             MapperException mapperException = (MapperException) e;
-            logger.logError(mapperException.getMessage(), mapperException.getCause());
+            LoggerManager.logError(mapperException.getMessage(), mapperException.getCause());
         }
     }
 
