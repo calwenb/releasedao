@@ -28,9 +28,8 @@ public class SqlUtil {
      */
     public static String camelToSnake(String camel) {
         //是否驼峰转蛇形
-        if (!new PropertyConfig().isCamelCase()) {
+        if (!PropertyConfig.isCamelCase()) {
             return camel;
-
         }
         if (StringUtils.isNullOrEmpty(camel)) {
             return "";

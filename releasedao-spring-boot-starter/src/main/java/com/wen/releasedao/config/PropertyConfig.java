@@ -2,10 +2,7 @@ package com.wen.releasedao.config;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * 配置类
@@ -15,30 +12,49 @@ import java.util.concurrent.TimeUnit;
  */
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "releasedao.config")
 public class PropertyConfig {
     /**
-     * 默认开启驼峰式转换
+     * 驼峰式转换，默认开启
      */
-    private boolean camelCase = true;
+    private static boolean camelCase;
     /**
-     * 默认开启日志
+     * 日志，默认关闭
      */
-    private static boolean logger = true;
+    private static boolean logger;
     /**
-     * 默认七天的缓存时间
+     * 缓存时间，默认七天
      */
-    private long expiredTime = TimeUnit.DAYS.toSeconds(7);
+    private static long expiredTime;
 
 
-    @Value("${releasedao.config.logger}")
+    @Value("${releasedao.config.logger:false}")
     public void setLogger(boolean logger) {
         PropertyConfig.logger = logger;
     }
 
+    @Value("${releasedao.config.camel-case:true}")
+    public void setCamelCase(boolean camelCase) {
+        PropertyConfig.camelCase = camelCase;
+    }
+
+
+    @Value("${releasedao.config.cache-expired-time:604800}")
+    public void setExpiredTime(long expiredTime) {
+        PropertyConfig.expiredTime = expiredTime;
+    }
 
     public static boolean isLogger() {
         return logger;
     }
+
+    public static boolean isCamelCase() {
+        return camelCase;
+    }
+
+
+    public static long getExpiredTime() {
+        return expiredTime;
+    }
+
 
 }
