@@ -9,7 +9,8 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.core.annotation.Order;
 
 /**
- * 异常处理AOP
+ * 异常处理AOP<br>
+ * 记录错误日志
  *
  * @author calwen
  * @since 2022/8/24

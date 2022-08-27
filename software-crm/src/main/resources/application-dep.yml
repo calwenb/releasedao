@@ -43,8 +43,10 @@ server:
   port: 3964
   servlet:
     context-path: /api
+
 releasedao:
   config:
     cache: true
     camel-case: true
     cache-expired-time: 604800
+    logger: true

@@ -3,6 +3,7 @@ package com.wen.releasedao.core.bo;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -35,7 +36,7 @@ public class Logger {
     /**
      * 预编译设值
      */
-    private List<Object> values;
+    private List<Object> values = Collections.emptyList();
     /**
      * 是否成功
      */

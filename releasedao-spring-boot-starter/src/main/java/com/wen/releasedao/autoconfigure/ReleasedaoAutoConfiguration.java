@@ -14,10 +14,8 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * BaseormAutoConfiguration类
- * 自动装配需要的bean。
- * 1.AutoConfiguration类，@bean，@ConditionalOnProperty
- * 2.在spring.factories中指定AutoConfiguration类
- * 3.由springboot自动装配机制将第三方需要的bean放入IOC容器中
+ * 自动装配需要的bean。<br>
+ * 由springboot自动装配机制将第三方需要的bean放入IOC容器中
  *
  * @author calwen
  * @since 2022/7/9

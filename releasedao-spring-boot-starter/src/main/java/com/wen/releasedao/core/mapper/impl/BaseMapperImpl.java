@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
  * @author calwen
  * @since 2022 /7/9
  */
-@SuppressWarnings("unchecked")
 public class BaseMapperImpl implements BaseMapper {
     /**
      * 数据库连接 AOP 自动管理连接
@@ -398,7 +397,6 @@ public class BaseMapperImpl implements BaseMapper {
         } finally {
             LoggerManager.log(pst, String.valueOf(sql), values);
         }
-
     }
 
     /**

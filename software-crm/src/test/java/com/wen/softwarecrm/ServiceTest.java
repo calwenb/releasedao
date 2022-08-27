@@ -30,7 +30,7 @@ public class ServiceTest {
 
         log.info("baseMapper.getById \n");
         Client clientModel = clientService.get(id);
-        System.out.println(client);
+        System.out.println(clientModel);
 
         log.info("baseMapper.add \n");
         Client addModel = new Client();
@@ -55,7 +55,16 @@ public class ServiceTest {
     }
 
     @Test
-    void nullT() {
+    void cache() {
+        List<Client> list = clientService.list(null);
+        list.forEach(System.out::println);
+
+        Client client = list.get(0);
+        Integer id = client.getId();
+
+        log.info("baseMapper.getById \n");
+        Client clientModel = clientService.get(id);
+        System.out.println(clientModel);
     }
 
 }

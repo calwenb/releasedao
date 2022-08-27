@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 @SpringBootTest
 public class ReleasedaoTest {
@@ -15,6 +16,7 @@ public class ReleasedaoTest {
 
     @Test
     void get() {
-        System.out.println(baseMapper.get(User.class));
+        List<User> list = baseMapper.getList(User.class);
+        list.forEach(System.out::println);
     }
 }

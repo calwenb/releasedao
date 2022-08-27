@@ -8,10 +8,8 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.core.annotation.Order;
 
 /**
- * MapperLogAop类
- * 对BaseMapper进行日志输出
- * AOP会将类中的属性初始化，并且不会设值
- * 所以不用考虑线程安全问题
+ * MapperLogAop类<br>
+ * 对BaseMapper进行日志输出<br>
  *
  * @author calwen
  * @since 2022/7/9
@@ -30,7 +28,6 @@ public class MapperLogAop {
             LoggerManager.logData(rs);
             LoggerManager.display();
             LoggerManager.remove();
-
         }
         return rs;
 

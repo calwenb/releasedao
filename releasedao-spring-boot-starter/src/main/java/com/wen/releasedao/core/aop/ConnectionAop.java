@@ -6,19 +6,22 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.springframework.core.annotation.Order;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
 
 /**
- * 连接Aop，
- * 为Mapper 获取Connection，关闭Connection
+ * Connection Aop类<br>
+ * 为Mapper 获取Connection<br>
+ * 关闭Connection
  *
  * @author calwen
  * @since 2022/8/24
  */
 @Aspect
 @Slf4j
+@Order(20)
 public class ConnectionAop {
     @Pointcut("execution(public * com.wen.releasedao.core.mapper.impl.BaseMapperImpl.*(..))")
     private void pointcut() {

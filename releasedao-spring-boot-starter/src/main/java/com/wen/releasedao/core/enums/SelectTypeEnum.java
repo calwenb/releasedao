@@ -8,7 +8,16 @@ package com.wen.releasedao.core.enums;
  */
 
 public enum SelectTypeEnum {
+    /**
+     * list 查询
+     */
     ALL,
+    /**
+     * 一个
+     */
     ONE,
+    /**
+     * 计数
+     */
     COUNT
 }

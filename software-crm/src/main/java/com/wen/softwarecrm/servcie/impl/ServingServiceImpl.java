@@ -1,8 +1,8 @@
 package com.wen.softwarecrm.servcie.impl;
 
+import com.wen.releasedao.core.mapper.BaseMapper;
 import com.wen.softwarecrm.pojo.Serving;
 import com.wen.softwarecrm.servcie.ServingService;
-import com.wen.releasedao.core.mapper.BaseMapper;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;

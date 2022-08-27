@@ -88,6 +88,10 @@ public class LoggerManager {
 
 
     private static void formatSql(Logger logger, StringBuilder sb) {
+        if (logger.getPstStr() == null) {
+            sb.append("\n++  no sql is executed  ++");
+            return;
+        }
         sb.append("\n==>    Sql:  ").append(logger.getSql());
         Optional.ofNullable(logger.getValues()).ifPresent((values) -> {
             sb.append("\n==>  Value:  ");

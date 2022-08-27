@@ -5,12 +5,12 @@ import com.wen.releasedao.core.annotation.CacheUpdate;
 import com.wen.releasedao.core.enums.CacheUpdateEnum;
 import com.wen.releasedao.core.util.MapperUtil;
 import com.wen.releasedao.core.wrapper.QueryWrapper;
-import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import javax.annotation.Resource;
@@ -20,15 +20,23 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 缓存AOP类
- * 执行mapper加入缓存
- * 遵循缓存旁路模式
+ * 缓存AOP类 <br>
+ * 遵循缓存旁路模式<br>
+ * 执行 <b> Wrapper、或 id 条件</b>为 key 加入缓存 <br>
+ * 引入 <b>cache_map</b>代表一条数据的所有Wrapper记录集（更新操作删除对应的缓存）：<br>
+ * key= redao:cache:表名:主键名=106（一条行数据），value= 为该数据的所有Wrapper记录集（set）。
+ * <p>
+ * 查询：缓存 key= id 或 wrapper , 有则值返回，否则加入缓存中。cache_map 记录<br>
+ * 更新：<br>
+ * 1. id,entity: 删除主键级缓存。删除cache_map id=x，中的所以Wrapper记录集；<br>
+ * 2. wrapper，batch：删除该表全部缓存。<br>
+ * 3. other:删除全部缓存，如 exeSql。<br>
  *
  * @author calwen
  * @since 2022/7/16
  */
 @Aspect
-@Slf4j
+@Order(10)
 public class CacheAop {
     @Resource
     RedisTemplate<String, Object> redisTemplate;
@@ -48,7 +56,7 @@ public class CacheAop {
 
     @Around("queryPointcut()")
     public Object queryCache(ProceedingJoinPoint joinPoint) throws Throwable {
-        log.info("++++ 进入查询缓存AOP ++++");
+        log("++++ logger: start cache aop ++++");
         Object[] args = joinPoint.getArgs();
         Class<?> targetClass = (Class<?>) args[0];
         String tableName = MapperUtil.parseTableName(targetClass);
@@ -69,8 +77,8 @@ public class CacheAop {
         Object cache = redisTemplate.opsForValue().get(key);
 
         if (cache != null) {
-            log.debug("有缓存 ==> key: " + key);
-            log.debug("value ==> " + cache);
+            log("have cache ==> key: " + key);
+            log("value      ==> " + cache);
             return cache;
         }
 
@@ -88,7 +96,7 @@ public class CacheAop {
             key = CACHE_MAP_PREFIX + tableName + ":id:" + idValue;
             redisTemplate.opsForSet().add(key, keySuffix);
             redisTemplate.expire(key, PropertyConfig.getExpiredTime(), TimeUnit.SECONDS);
-            log.debug("加入缓存 ==> key: " + key);
+            log("have cache ==> key: " + key);
         }
         return rs;
 
@@ -97,7 +105,7 @@ public class CacheAop {
 
     @Around("updatePointcut()")
     public <T> Object updateCache(ProceedingJoinPoint joinPoint) throws Throwable {
-        log.info("++++ 进入更新缓存AOP ++++");
+        log("++++ logger: start cache update ++++");
 
         Object rs = joinPoint.proceed();
         //成功更新操作
@@ -126,7 +134,7 @@ public class CacheAop {
             CacheUpdateEnum cacheUpdate = declaredAnnotation.value();
 
             switch (cacheUpdate) {
-                //id 删除行缓存
+                //删除行缓存
                 case ID:
                 case ENTITY:
                     delRowCache(target, tableName);
@@ -149,7 +157,8 @@ public class CacheAop {
     }
 
     /**
-     * 删除一条该缓存
+     * 删除该缓存映射的全部 缓存 <br>
+     * 如:  redao:cache-map:client:id:106 <br>
      */
     private void delRowCache(Object target, String tableName) throws NoSuchFieldException, IllegalAccessException {
         Class<?> targetClass = target.getClass();
@@ -162,10 +171,10 @@ public class CacheAop {
         set = Optional.ofNullable(set).orElse(Collections.emptySet());
         for (Object o : set) {
             String key = CACHE_PREFIX + tableName + ":" + o;
-            Boolean delete = redisTemplate.delete(key);
-            System.out.println("is de: " + delete);
+            redisTemplate.delete(key);
         }
         redisTemplate.delete(topKey);
+        log("delete map caches ==> " + topKey);
     }
 
     /**
@@ -178,7 +187,7 @@ public class CacheAop {
         MapKeys = Optional.ofNullable(MapKeys).orElse(Collections.emptySet());
         keys.addAll(MapKeys);
         redisTemplate.delete(keys);
-        log.debug("delete caches ==> " + keys);
+        log("delete caches ==> " + keys);
     }
 
     /**
@@ -191,7 +200,13 @@ public class CacheAop {
         MapKeys = Optional.ofNullable(MapKeys).orElse(Collections.emptySet());
         keys.addAll(MapKeys);
         redisTemplate.delete(keys);
-        log.debug("delete caches ==> " + keys);
+        log("delete caches ==> " + keys);
+    }
+
+    private void log(String log) {
+        if (PropertyConfig.isLogger()) {
+            System.out.println(log);
+        }
     }
 
 

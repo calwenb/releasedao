@@ -23,7 +23,6 @@ public class QueryWrapper extends AbstractWrapper implements Wrapper {
     static {
         WHERE_SET = new HashSet<>();
         WHERE_SET.add(OperatEnum.EQ);
-        WHERE_SET.add(OperatEnum.EQS);
         WHERE_SET.add(OperatEnum.NOT_EQ);
         WHERE_SET.add(OperatEnum.GREATER);
         WHERE_SET.add(OperatEnum.LESS);
