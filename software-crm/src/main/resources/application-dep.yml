@@ -46,7 +46,7 @@ server:
 
 releasedao:
   config:
-    cache: true
-    camel-case: true
-    cache-expired-time: 604800
-    logger: true
+    camel-case: true #开启 驼峰自动转蛇形式 默认true
+    logger: true #开启 日志输出 ，默认false
+    cache: true #是否开启缓存，默认false
+    cache-expired-time: 604800 #缓存过期时间 默认七天
