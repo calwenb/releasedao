@@ -389,9 +389,16 @@ public class BaseMapperImpl implements BaseMapper {
                 PreparedStatement finalPst = pst;
                 resultMap.forEach((k, v) -> {
                     try {
-                        Field objField = eClass.getDeclaredField(k);
-                        objField.setAccessible(true);
-                        Object value = objField.get(entity);
+                        Field field = eClass.getDeclaredField(k);
+                        field.setAccessible(true);
+                        Object value;
+                        if (field.isAnnotationPresent(CreateDate.class) && SaveTypeEnum.INSERT.equals(saveType)) {
+                            value = new Date();
+                        } else if (field.isAnnotationPresent(UpdateDate.class) && SaveTypeEnum.REPLACE.equals(saveType)) {
+                            value = new Date();
+                        } else {
+                            value = field.get(entity);
+                        }
                         finalPst.setObject(i.get(), value);
                         values.add(value);
                         i.getAndIncrement();
