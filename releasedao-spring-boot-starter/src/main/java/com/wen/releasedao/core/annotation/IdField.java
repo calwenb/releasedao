@@ -11,9 +11,9 @@ import java.lang.annotation.*;
  * @author calwen
  * @since 2022/7/9
  */
+@Documented
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
-@Documented
 public @interface IdField {
 
     String value() default "";

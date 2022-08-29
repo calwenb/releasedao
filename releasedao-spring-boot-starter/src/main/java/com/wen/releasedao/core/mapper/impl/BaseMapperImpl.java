@@ -3,6 +3,8 @@ package com.wen.releasedao.core.mapper.impl;
 import com.mysql.cj.util.StringUtils;
 import com.wen.releasedao.core.annotation.CacheQuery;
 import com.wen.releasedao.core.annotation.CacheUpdate;
+import com.wen.releasedao.core.annotation.CreateDate;
+import com.wen.releasedao.core.annotation.UpdateDate;
 import com.wen.releasedao.core.enums.CacheUpdateEnum;
 import com.wen.releasedao.core.enums.SaveTypeEnum;
 import com.wen.releasedao.core.enums.SelectTypeEnum;
@@ -337,19 +339,26 @@ public class BaseMapperImpl implements BaseMapper {
             PreparedStatement finalPst = pst;
             resultMap.forEach((k, v) -> {
                 try {
-                    Field objField = eClass.getDeclaredField(k);
-                    objField.setAccessible(true);
-                    Object value = objField.get(entity);
+                    Field field = eClass.getDeclaredField(k);
+                    field.setAccessible(true);
+                    Object value;
+                    if (field.isAnnotationPresent(CreateDate.class) && SaveTypeEnum.INSERT.equals(saveType)) {
+                        value = new Date();
+                    } else if (field.isAnnotationPresent(UpdateDate.class) && SaveTypeEnum.REPLACE.equals(saveType)) {
+                        value = new Date();
+                    } else {
+                        value = field.get(entity);
+                    }
                     finalPst.setObject(i.get(), value);
                     values.add(value);
                     i.getAndIncrement();
                 } catch (Exception e) {
-                    throw new MapperException("批量保存 预编译 时异常", e);
+                    throw new MapperException("设置预编译 时异常", e);
                 }
             });
             return pst.executeUpdate();
         } catch (SQLException e) {
-            throw new MapperException(" 批量保存时发生sql异常 ", e);
+            throw new MapperException(" 保存时发生sql异常 ", e);
         } finally {
             LoggerManager.log(pst, String.valueOf(sql), values);
         }

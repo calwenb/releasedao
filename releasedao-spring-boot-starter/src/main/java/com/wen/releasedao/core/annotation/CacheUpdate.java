@@ -10,9 +10,9 @@ import java.lang.annotation.*;
  * @author calwen
  * @since 2022/7/18
  */
+@Documented
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-@Documented
 public @interface CacheUpdate {
     CacheUpdateEnum value() default CacheUpdateEnum.ID;
 }

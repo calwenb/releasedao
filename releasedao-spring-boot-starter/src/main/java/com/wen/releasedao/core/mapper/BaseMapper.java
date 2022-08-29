@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * 封装基本CRUD <br>
  * core<br>
- * <b> @param eClass 为实体类型</b>
+ * <b>  eClass 为实体类型</b>
  *
  * @author calwen
  * @since 2022/7/9
