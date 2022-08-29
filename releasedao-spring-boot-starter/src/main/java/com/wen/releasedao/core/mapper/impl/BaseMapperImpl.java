@@ -356,6 +356,10 @@ public class BaseMapperImpl implements BaseMapper {
                     throw new MapperException("设置预编译 时异常", e);
                 }
             });
+            //todo
+            int id = 0;
+
+            T newEntity = (T) getById(entity.getClass(), id);
             return pst.executeUpdate();
         } catch (SQLException e) {
             throw new MapperException(" 保存时发生sql异常 ", e);
