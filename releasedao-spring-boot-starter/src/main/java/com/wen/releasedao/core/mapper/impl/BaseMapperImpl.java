@@ -3,8 +3,8 @@ package com.wen.releasedao.core.mapper.impl;
 import com.mysql.cj.util.StringUtils;
 import com.wen.releasedao.core.annotation.CacheQuery;
 import com.wen.releasedao.core.annotation.CacheUpdate;
-import com.wen.releasedao.core.annotation.CreateDate;
-import com.wen.releasedao.core.annotation.UpdateDate;
+import com.wen.releasedao.core.annotation.CreateTime;
+import com.wen.releasedao.core.annotation.UpdateTime;
 import com.wen.releasedao.core.enums.CacheUpdateEnum;
 import com.wen.releasedao.core.enums.SaveTypeEnum;
 import com.wen.releasedao.core.enums.SelectTypeEnum;
@@ -15,6 +15,7 @@ import com.wen.releasedao.core.util.MapperUtil;
 import com.wen.releasedao.core.wrapper.QueryWrapper;
 import com.wen.releasedao.core.wrapper.SetWrapper;
 import com.wen.releasedao.util.CastUtil;
+import org.springframework.beans.BeanUtils;
 
 import java.lang.reflect.Field;
 import java.sql.Connection;
@@ -330,24 +331,25 @@ public class BaseMapperImpl implements BaseMapper {
         try {
             Class<?> eClass = entity.getClass();
             Map<String, String> resultMap = MapperUtil.resultMap(eClass);
-            System.out.println();
             baseSaveSqlPrefix(eClass, resultMap, saveType, sql);
             baseSaveSqlQuestion(resultMap, sql);
             sql.append(" ) ");
-            pst = conn.prepareStatement(String.valueOf(sql));
+            pst = conn.prepareStatement(String.valueOf(sql), PreparedStatement.RETURN_GENERATED_KEYS);
+            //填充Entity实现动态更新
+            fillingEntity(eClass, entity, saveType);
             AtomicInteger i = new AtomicInteger(1);
             PreparedStatement finalPst = pst;
             resultMap.forEach((k, v) -> {
                 try {
-                    Field field = eClass.getDeclaredField(k);
-                    field.setAccessible(true);
+                    Field f = eClass.getDeclaredField(k);
+                    f.setAccessible(true);
                     Object value;
-                    if (field.isAnnotationPresent(CreateDate.class) && SaveTypeEnum.INSERT.equals(saveType)) {
+                    if (SaveTypeEnum.INSERT.equals(saveType) && (f.isAnnotationPresent(CreateTime.class) || f.isAnnotationPresent(UpdateTime.class))) {
                         value = new Date();
-                    } else if (field.isAnnotationPresent(UpdateDate.class) && SaveTypeEnum.REPLACE.equals(saveType)) {
+                    } else if (SaveTypeEnum.REPLACE.equals(saveType) && f.isAnnotationPresent(UpdateTime.class)) {
                         value = new Date();
                     } else {
-                        value = field.get(entity);
+                        value = f.get(entity);
                     }
                     finalPst.setObject(i.get(), value);
                     values.add(value);
@@ -356,12 +358,16 @@ public class BaseMapperImpl implements BaseMapper {
                     throw new MapperException("设置预编译 时异常", e);
                 }
             });
-            //todo
-            int id = 0;
-
-            T newEntity = (T) getById(entity.getClass(), id);
-            return pst.executeUpdate();
-        } catch (SQLException e) {
+            int rs = pst.executeUpdate();
+            //更新原实体
+            ResultSet GeneratedKeys = pst.getGeneratedKeys();
+            if (GeneratedKeys.next()) {
+                int id = GeneratedKeys.getInt(1);
+                Object newEntity = getById(entity.getClass(), id);
+                BeanUtils.copyProperties(newEntity, entity);
+            }
+            return rs;
+        } catch (Exception e) {
             throw new MapperException(" 保存时发生sql异常 ", e);
         } finally {
             LoggerManager.log(pst, String.valueOf(sql), values);
@@ -380,6 +386,7 @@ public class BaseMapperImpl implements BaseMapper {
             Class<?> eClass = entityList.get(0).getClass();
             int listSize = entityList.size();
             Map<String, String> resultMap = MapperUtil.resultMap(eClass);
+
             baseSaveSqlPrefix(eClass, resultMap, saveType, sql);
             for (int i = 0; i < listSize; i++) {
                 baseSaveSqlQuestion(resultMap, sql);
@@ -396,9 +403,9 @@ public class BaseMapperImpl implements BaseMapper {
                         Field field = eClass.getDeclaredField(k);
                         field.setAccessible(true);
                         Object value;
-                        if (field.isAnnotationPresent(CreateDate.class) && SaveTypeEnum.INSERT.equals(saveType)) {
+                        if (field.isAnnotationPresent(CreateTime.class) && SaveTypeEnum.INSERT.equals(saveType)) {
                             value = new Date();
-                        } else if (field.isAnnotationPresent(UpdateDate.class) && SaveTypeEnum.REPLACE.equals(saveType)) {
+                        } else if (field.isAnnotationPresent(UpdateTime.class) && SaveTypeEnum.REPLACE.equals(saveType)) {
                             value = new Date();
                         } else {
                             value = field.get(entity);
@@ -424,14 +431,9 @@ public class BaseMapperImpl implements BaseMapper {
      */
     private void baseSaveSqlPrefix(Class<?> eClass, Map<String, String> resultMap, SaveTypeEnum saveType, StringBuilder sql) {
         String tableName = MapperUtil.parseTableName(eClass);
-        sql.append(saveType.name()).append(" INTO ")
-                .append(tableName)
-                .append(" ( ");
-        resultMap.forEach((k, v) -> sql.append(v)
-                .append(" , "));
-        sql.delete(sql.lastIndexOf(","), sql.length())
-                .append(" ) ")
-                .append(" VALUES ");
+        sql.append(saveType.name()).append(" INTO ").append(tableName).append(" ( ");
+        resultMap.forEach((k, v) -> sql.append(v).append(" , "));
+        sql.delete(sql.lastIndexOf(","), sql.length()).append(" ) ").append(" VALUES ");
     }
 
     /**
@@ -445,6 +447,37 @@ public class BaseMapperImpl implements BaseMapper {
                 break;
             }
             sql.append(" ?, ");
+        }
+    }
+
+    /**
+     * 更新操作时，通过主键将Entity中属性填充
+     */
+    private void fillingEntity(Class<?> eClass, Object entity, SaveTypeEnum saveType) throws IllegalAccessException, NoSuchFieldException {
+        //插入不操作
+        if (SaveTypeEnum.INSERT.equals(saveType)) {
+            return;
+        }
+        String fid = MapperUtil.parseId(eClass);
+        Field field = eClass.getDeclaredField(fid);
+        field.setAccessible(true);
+        Object oid = field.get(entity);
+        //主键值等于null 不操作
+        if (oid == null) {
+            return;
+        }
+        Object data = getById(eClass, oid);
+        if (data != null) {
+            Field[] fields = eClass.getDeclaredFields();
+            ArrayList<String> ignoreFields = new ArrayList<>();
+            for (Field f : fields) {
+                f.setAccessible(true);
+                Object o = f.get(entity);
+                if (o != null) {
+                    ignoreFields.add(f.getName());
+                }
+            }
+            BeanUtils.copyProperties(data, entity, ignoreFields.toArray(new String[0]));
         }
     }
 }

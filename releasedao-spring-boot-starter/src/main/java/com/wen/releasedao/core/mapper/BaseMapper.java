@@ -77,14 +77,16 @@ public interface BaseMapper {
     <T> int getCount(Class<T> eClass, QueryWrapper queryWrapper);
 
     /**
-     * 保存 数据
+     * 保存 数据<br>
+     * entity会更新成数据库数据
      *
      * @param entity 数据
      */
     <T> int save(T entity);
 
     /**
-     * 插入数据
+     * 插入 数据<br>
+     * entity会更新成数据库数据
      *
      * @param entity 数据
      */
@@ -98,7 +100,8 @@ public interface BaseMapper {
     <T> int addBatch(List<T> entityList);
 
     /**
-     * 替换数据
+     * 替换数据<br>
+     * entity会更新成数据库数据
      *
      * @param entity 数据
      */

@@ -1,6 +1,8 @@
 package com.wen.softwarecrm.pojo;
 
+import com.wen.releasedao.core.annotation.CreateTime;
 import com.wen.releasedao.core.annotation.TableName;
+import com.wen.releasedao.core.annotation.UpdateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,5 +20,8 @@ public class Serving {
     private String content;
     private String type;
     private String createName;
+    @CreateTime
     private Date createTime;
+    @UpdateTime
+    private Date updateTime;
 }
