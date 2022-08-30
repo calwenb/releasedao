@@ -1,4 +1,4 @@
-package com.wen.releasedao.core.util;
+package com.wen.releasedao.core.helper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -24,7 +24,7 @@ import java.util.*;
  * @author calwen
  * @since 2022/7/9
  */
-public class MapperUtil {
+public class MapperHelper {
     /**
      * 解析字段
      * 过滤 @FieldName(exist = false)
@@ -155,7 +155,7 @@ public class MapperUtil {
             List<T> list = new ArrayList<>();
             //获得 对象属性数组，类构造器,字段映射
             Field[] fields = tClass.getDeclaredFields();
-            Constructor<T> classCon = MapperUtil.getConstructor(tClass);
+            Constructor<T> classCon = MapperHelper.getConstructor(tClass);
 
             //返回数据解析实体
             while (rs.next()) {

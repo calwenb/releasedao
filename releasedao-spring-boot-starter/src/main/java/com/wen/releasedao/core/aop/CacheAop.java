@@ -3,7 +3,7 @@ package com.wen.releasedao.core.aop;
 import com.wen.releasedao.config.PropertyConfig;
 import com.wen.releasedao.core.annotation.CacheUpdate;
 import com.wen.releasedao.core.enums.CacheUpdateEnum;
-import com.wen.releasedao.core.util.MapperUtil;
+import com.wen.releasedao.core.helper.MapperHelper;
 import com.wen.releasedao.core.wrapper.QueryWrapper;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -59,7 +59,7 @@ public class CacheAop {
         log("++++ logger: start cache aop ++++");
         Object[] args = joinPoint.getArgs();
         Class<?> targetClass = (Class<?>) args[0];
-        String tableName = MapperUtil.parseTableName(targetClass);
+        String tableName = MapperHelper.parseTableName(targetClass);
         Class<?> aClass = args[1].getClass();
         String keySuffix;
         String cacheId;
@@ -69,7 +69,7 @@ public class CacheAop {
             QueryWrapper wrapper = (QueryWrapper) args[1];
             keySuffix = String.valueOf(wrapper.getResult());
         } else {
-            cacheId = MapperUtil.parseId(targetClass);
+            cacheId = MapperHelper.parseId(targetClass);
             idValue = String.valueOf(args[1]);
             keySuffix = cacheId + "=" + idValue;
         }
@@ -89,7 +89,7 @@ public class CacheAop {
                 return rs;
             }
             redisTemplate.opsForValue().set(key, rs, PropertyConfig.getExpiredTime(), TimeUnit.SECONDS);
-            String id = MapperUtil.parseId(rs.getClass());
+            String id = MapperHelper.parseId(rs.getClass());
             Field field = rs.getClass().getDeclaredField(id);
             field.setAccessible(true);
             idValue = String.valueOf(field.get(rs));
@@ -126,7 +126,7 @@ public class CacheAop {
                 targetClass = list.get(0).getClass();
             }
 
-            String tableName = MapperUtil.parseTableName(targetClass);
+            String tableName = MapperHelper.parseTableName(targetClass);
 
             MethodSignature ms = (MethodSignature) joinPoint.getSignature();
             Method method = ms.getMethod();
@@ -162,7 +162,7 @@ public class CacheAop {
      */
     private void delRowCache(Object target, String tableName) throws NoSuchFieldException, IllegalAccessException {
         Class<?> targetClass = target.getClass();
-        String cacheId = MapperUtil.parseId(targetClass);
+        String cacheId = MapperHelper.parseId(targetClass);
         Field field = targetClass.getDeclaredField(cacheId);
         field.setAccessible(true);
         Object idValue = field.get(target);

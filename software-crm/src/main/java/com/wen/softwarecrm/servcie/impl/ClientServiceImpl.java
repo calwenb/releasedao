@@ -76,7 +76,7 @@ public class ClientServiceImpl implements ClientService {
         add(addModel);
 
         del(id);
-        System.out.println(1 / 0);
+//        System.out.println(1 / 0);
 
     }
 }

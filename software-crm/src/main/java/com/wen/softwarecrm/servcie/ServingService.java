@@ -6,11 +6,11 @@ import com.wen.softwarecrm.pojo.Serving;
 import java.util.List;
 
 public interface ServingService {
-    int add(Serving serving);
+    boolean add(Serving serving);
 
-    int delete(Integer id);
+    boolean delete(Integer id);
 
-    int update(Serving serving);
+    boolean update(Serving serving);
 
     Serving get(Integer id);
 

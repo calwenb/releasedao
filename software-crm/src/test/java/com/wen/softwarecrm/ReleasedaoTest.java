@@ -96,10 +96,11 @@ public class ReleasedaoTest {
     @Test
     void addTime() {
         Serving serving = new Serving();
-        serving.setUserName("w");
-        serving.setTitle("w");
-        serving.setContent("w");
+        serving.setUserName("calwen");
+        serving.setTitle("add");
+        serving.setContent("add");
         serving.setType("2");
+        serving.setCreateName("calwen");
         baseMapper.add(serving);
         System.out.println(serving);
     }
@@ -108,8 +109,8 @@ public class ReleasedaoTest {
     void save() {
         Serving serving = new Serving();
         serving.setId(12);
-        serving.setUserName("w");
-        serving.setTitle("up");
+        serving.setUserName("calwen");
+        serving.setTitle("upt");
         serving.setContent("upc");
         long l = System.currentTimeMillis();
         baseMapper.save(serving);

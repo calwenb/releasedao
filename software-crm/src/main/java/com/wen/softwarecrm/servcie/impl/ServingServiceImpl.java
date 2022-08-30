@@ -15,19 +15,18 @@ public class ServingServiceImpl implements ServingService {
     BaseMapper baseMapper;
 
     @Override
-    public int add(Serving serving) {
+    public boolean add(Serving serving) {
         serving.setCreateTime(new Date());
         return baseMapper.add(serving);
     }
 
     @Override
-    public int delete(Integer id) {
+    public boolean delete(Integer id) {
         return baseMapper.deleteById(Serving.class, id);
     }
 
     @Override
-    public int update(Serving serving) {
-
+    public boolean update(Serving serving) {
         return baseMapper.save(serving);
     }
 
