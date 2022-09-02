@@ -75,7 +75,7 @@ public class BaseMapperImpl implements BaseMapper {
 
     public <T> T getById(Class<T> eClass, Object id) {
         QueryWrapper wrapper = new QueryWrapper();
-        wrapper.eq(MapperHelper.parseId(eClass), id);
+        wrapper.eq(MapperHelper.parseId(eClass, false), id);
         return (T) baseSelect(eClass, wrapper, SelectTypeEnum.ONE);
     }
 
@@ -179,7 +179,7 @@ public class BaseMapperImpl implements BaseMapper {
     @Override
     public <T> boolean deleteById(Class<T> eClass, Integer id) {
         QueryWrapper wrapper = new QueryWrapper();
-        wrapper.eq(MapperHelper.parseId(eClass), id);
+        wrapper.eq(MapperHelper.parseId(eClass, false), id);
         return delete(eClass, wrapper);
     }
 
@@ -458,7 +458,7 @@ public class BaseMapperImpl implements BaseMapper {
         if (SaveTypeEnum.INSERT.equals(saveType)) {
             return;
         }
-        String fid = MapperHelper.parseId(eClass);
+        String fid = MapperHelper.parseId(eClass, true);
         Field field = eClass.getDeclaredField(fid);
         field.setAccessible(true);
         Object oid = field.get(entity);

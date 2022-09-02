@@ -69,7 +69,7 @@ public class CacheAop {
             QueryWrapper wrapper = (QueryWrapper) args[1];
             keySuffix = String.valueOf(wrapper.getResult());
         } else {
-            cacheId = MapperHelper.parseId(targetClass);
+            cacheId = MapperHelper.parseId(targetClass,true);
             idValue = String.valueOf(args[1]);
             keySuffix = cacheId + "=" + idValue;
         }
@@ -89,7 +89,7 @@ public class CacheAop {
                 return rs;
             }
             redisTemplate.opsForValue().set(key, rs, PropertyConfig.getExpiredTime(), TimeUnit.SECONDS);
-            String id = MapperHelper.parseId(rs.getClass());
+            String id = MapperHelper.parseId(rs.getClass(),true);
             Field field = rs.getClass().getDeclaredField(id);
             field.setAccessible(true);
             idValue = String.valueOf(field.get(rs));
@@ -162,7 +162,7 @@ public class CacheAop {
      */
     private void delRowCache(Object target, String tableName) throws NoSuchFieldException, IllegalAccessException {
         Class<?> targetClass = target.getClass();
-        String cacheId = MapperHelper.parseId(targetClass);
+        String cacheId = MapperHelper.parseId(targetClass,true);
         Field field = targetClass.getDeclaredField(cacheId);
         field.setAccessible(true);
         Object idValue = field.get(target);

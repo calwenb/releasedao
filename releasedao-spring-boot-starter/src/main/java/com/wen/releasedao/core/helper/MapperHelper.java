@@ -42,11 +42,13 @@ public class MapperHelper {
         return fields;
     }
 
+
     /**
      * 解析 主键id
+     * @param property-是否返回类属性
+     * @return 主键
      */
-    public static <T> String parseId(Class<T> tClass) {
-        String id = null;
+    public static <T> String parseId(Class<T> tClass, boolean property) {
         Field[] fields = tClass.getDeclaredFields();
 
         //找到属性上 @IdField 注解
@@ -56,17 +58,22 @@ public class MapperHelper {
             if (idFieldAnn == null) {
                 continue;
             }
+            //获取类上的属性名，不做处理
+            if (property) {
+                return f.getName();
+            }
             if (!StringUtils.isNullOrEmpty(idFieldAnn.value())) {
-                id = idFieldAnn.value();
+                return idFieldAnn.value();
             } else {
-                id = SqlUtil.camelToSnake(f.getName());
+                return SqlUtil.camelToSnake(f.getName());
             }
         }
         //未指定，默认第一个
-        if (id == null) {
-            id = SqlUtil.camelToSnake(fields[0].getName());
+        if (property) {
+            return fields[0].getName();
+        } else {
+            return SqlUtil.camelToSnake(fields[0].getName());
         }
-        return id;
     }
 
 
