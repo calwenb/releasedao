@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * 封装基本CRUD <br>
  * core<br>
- * <b> @param eClass 为实体类型</b>
+ * <b>  eClass 为实体类型</b>
  *
  * @author calwen
  * @since 2022/7/9
@@ -77,46 +77,49 @@ public interface BaseMapper {
     <T> int getCount(Class<T> eClass, QueryWrapper queryWrapper);
 
     /**
-     * 保存 数据
+     * 保存 数据<br>
+     * entity会更新成数据库数据
      *
      * @param entity 数据
      */
-    <T> int save(T entity);
+    <T> boolean save(T entity);
 
     /**
-     * 插入数据
+     * 插入 数据<br>
+     * entity会更新成数据库数据
      *
      * @param entity 数据
      */
-    <T> int add(T entity);
+    <T> boolean add(T entity);
 
     /**
      * 批量插入数据
      *
      * @param entityList 数据集
      */
-    <T> int addBatch(List<T> entityList);
+    <T> boolean addBatch(List<T> entityList);
 
     /**
-     * 替换数据
+     * 替换数据<br>
+     * entity会更新成数据库数据
      *
      * @param entity 数据
      */
-    <T> int replace(T entity);
+    <T> boolean replace(T entity);
 
     /**
      * 批量替换数据
      *
      * @param entityList 数据集
      */
-    <T> int replaceBatch(List<T> entityList);
+    <T> boolean replaceBatch(List<T> entityList);
 
     /**
      * 批量保存数据
      *
      * @param entityList 数据集
      */
-    <T> int saveBatch(List<T> entityList);
+    <T> boolean saveBatch(List<T> entityList);
 
     /**
      * 删除 （根据查询构建器）
@@ -124,7 +127,7 @@ public interface BaseMapper {
      * @param eClass       实体类型
      * @param queryWrapper 查询构建器
      */
-    <T> int delete(Class<T> eClass, QueryWrapper queryWrapper);
+    <T> boolean delete(Class<T> eClass, QueryWrapper queryWrapper);
 
     /**
      * 删除 （根据主键）
@@ -132,7 +135,7 @@ public interface BaseMapper {
      * @param eClass 实体类型
      * @param id     主键
      */
-    <T> int deleteById(Class<T> eClass, Integer id);
+    <T> boolean deleteById(Class<T> eClass, Integer id);
 
     /**
      * 更新
@@ -141,7 +144,7 @@ public interface BaseMapper {
      * @param setWrapper   更新构建器
      * @param queryWrapper 查询构建器
      */
-    <T> int update(Class<T> eClass, SetWrapper setWrapper, QueryWrapper queryWrapper);
+    <T> boolean update(Class<T> eClass, SetWrapper setWrapper, QueryWrapper queryWrapper);
 
     /**
      * 自定义 执行sql

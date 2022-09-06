@@ -1,4 +1,4 @@
-package com.wen.releasedao.core.util;
+package com.wen.releasedao.core.helper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -18,13 +18,13 @@ import java.time.ZoneId;
 import java.util.*;
 
 /**
- * Mapper工具类
+ * Mapper帮助者<br>
  * 为BaseMapper提供支持
  *
  * @author calwen
  * @since 2022/7/9
  */
-public class MapperUtil {
+public class MapperHelper {
     /**
      * 解析字段
      * 过滤 @FieldName(exist = false)
@@ -42,11 +42,13 @@ public class MapperUtil {
         return fields;
     }
 
+
     /**
      * 解析 主键id
+     * @param property-是否返回类属性
+     * @return 主键
      */
-    public static <T> String parseId(Class<T> tClass) {
-        String id = null;
+    public static <T> String parseId(Class<T> tClass, boolean property) {
         Field[] fields = tClass.getDeclaredFields();
 
         //找到属性上 @IdField 注解
@@ -56,17 +58,22 @@ public class MapperUtil {
             if (idFieldAnn == null) {
                 continue;
             }
+            //获取类上的属性名，不做处理
+            if (property) {
+                return f.getName();
+            }
             if (!StringUtils.isNullOrEmpty(idFieldAnn.value())) {
-                id = idFieldAnn.value();
+                return idFieldAnn.value();
             } else {
-                id = SqlUtil.camelToSnake(f.getName());
+                return SqlUtil.camelToSnake(f.getName());
             }
         }
         //未指定，默认第一个
-        if (id == null) {
-            id = SqlUtil.camelToSnake(fields[0].getName());
+        if (property) {
+            return fields[0].getName();
+        } else {
+            return SqlUtil.camelToSnake(fields[0].getName());
         }
-        return id;
     }
 
 
@@ -155,7 +162,7 @@ public class MapperUtil {
             List<T> list = new ArrayList<>();
             //获得 对象属性数组，类构造器,字段映射
             Field[] fields = tClass.getDeclaredFields();
-            Constructor<T> classCon = MapperUtil.getConstructor(tClass);
+            Constructor<T> classCon = MapperHelper.getConstructor(tClass);
 
             //返回数据解析实体
             while (rs.next()) {

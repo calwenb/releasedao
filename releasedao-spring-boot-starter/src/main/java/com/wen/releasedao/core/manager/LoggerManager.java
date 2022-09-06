@@ -122,8 +122,8 @@ public class LoggerManager {
                 sb.append("\n<==  Row ").append(++row).append(":  ").append(o);
             }
             sb.append("\n<==  Total:  ").append(row);
-        } else if (data instanceof Integer) {
-            sb.append("\n<== Change: ").append(data);
+        } else if (data instanceof Boolean) {
+            sb.append("\n<== success: ").append(data);
         } else {
             sb.append("\n<==  Row ").append(1).append(":  ").append(data);
             sb.append("\n<==  Total:  ").append(1);

@@ -1,18 +1,15 @@
 package com.wen.releasedao.core.annotation;
 
-
 import java.lang.annotation.*;
 
 /**
- * 指定BaseMapper 缓存 开启方法
+ * 自动填充更新时间
  *
  * @author calwen
- * @since 2022/7/16
+ * @since 2022/8/29
  */
 @Documented
-@Target({ElementType.METHOD})
+@Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface CacheQuery {
-
-
+public @interface UpdateTime {
 }

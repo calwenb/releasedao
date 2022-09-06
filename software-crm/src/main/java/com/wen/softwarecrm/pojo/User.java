@@ -29,5 +29,4 @@ public class User implements Serializable {
     private String phoneNumber;
     private String email;
     private Date registerTime;
-
 }

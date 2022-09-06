@@ -43,12 +43,14 @@ releaseDao（ORM），含义：释放dao层，通过APi+注解的形式轻松操
 ##### Maven依赖:
 
 ```xml
+<!-- 强烈推荐使用最新版本或次新 -->
 <!-- https://mvnrepository.com/artifact/io.github.calwenb/releasedao-spring-boot-starter -->
 <dependency>
     <groupId>io.github.calwenb</groupId>
     <artifactId>releasedao-spring-boot-starter</artifactId>
     <version>1.x.x</version> 
 </dependency>
+
 ```
 
 #### Quick Start
