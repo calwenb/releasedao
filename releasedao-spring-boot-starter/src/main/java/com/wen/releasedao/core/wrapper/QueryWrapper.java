@@ -138,10 +138,28 @@ public class QueryWrapper extends AbstractWrapper implements Wrapper {
                     whereSql.append(" CONCAT( ").append(field).append(" ) ").append(" LIKE '").append(value).append("%' ");
                     break;
                 case ORDER:
-                    whereSql.append(" ORDER BY ").append(field);
+                    String[] str = field.split(",");
+                    if (whereSql.indexOf(" ORDER BY ") == -1) {
+                        whereSql.append(" ORDER BY ");
+                    }else {
+                        whereSql.append(" , ");
+                    }
+                    for (String f : str) {
+                        whereSql.append(f).append(" ASC ,");
+                    }
+                    whereSql.deleteCharAt(whereSql.length() - 1);
                     break;
                 case ORDER_DESC:
-                    whereSql.append(" ORDER BY ").append(field).append(" DESC ");
+                    str = field.split(",");
+                    if (whereSql.indexOf(" ORDER BY ") == -1) {
+                        whereSql.append(" ORDER BY ");
+                    }else {
+                        whereSql.append(" , ");
+                    }
+                    for (String f : str) {
+                        whereSql.append(f).append(" DESC ,");
+                    }
+                    whereSql.deleteCharAt(whereSql.length() - 1);
                     break;
                 case LIMIT:
                     whereSql.append(" LIMIT ").append(field);

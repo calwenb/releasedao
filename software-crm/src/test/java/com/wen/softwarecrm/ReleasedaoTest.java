@@ -1,6 +1,7 @@
 package com.wen.softwarecrm;
 
 import com.wen.releasedao.core.mapper.BaseMapper;
+import com.wen.releasedao.core.wrapper.QueryWrapper;
 import com.wen.softwarecrm.pojo.Client;
 import com.wen.softwarecrm.pojo.Serving;
 import com.wen.softwarecrm.pojo.User;
@@ -114,6 +115,14 @@ public class ReleasedaoTest {
         baseMapper.save(serving);
         System.out.println(serving);
         System.out.println(System.currentTimeMillis() - l);
+    }
+    @Test
+    void order(){
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.order("type,create_time");
+        wrapper.orderDesc("update_time");
+        List<Serving> list = baseMapper.getList(Serving.class,wrapper);
+        list.forEach(System.out::println);
     }
 
 
