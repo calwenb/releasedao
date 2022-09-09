@@ -54,9 +54,6 @@ public class QueryWrapper extends AbstractWrapper implements Wrapper {
 
     /**
      * 解析 构造 sql，预编译值
-     *
-     * @author calwen
-     * @since 2022/7/15
      */
     @Override
     public HashMap<String, Object> getResult() {
