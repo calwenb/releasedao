@@ -1,6 +1,7 @@
 package com.wen.releasedao.core.wrapper;
 
 import com.wen.releasedao.core.enums.OperatEnum;
+import com.wen.releasedao.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -77,7 +78,7 @@ public class QueryWrapper extends AbstractWrapper implements Wrapper {
             }
             switch (operating) {
                 case EQ:
-                    whereSql.append(" `").append(field).append("` ").append(" = ? ");
+                    StringUtil.append(whereSql, " `%s`  = ? ", field);
                     setList.add(value);
                     break;
                 case IN:
@@ -93,7 +94,7 @@ public class QueryWrapper extends AbstractWrapper implements Wrapper {
                     whereSql.append(" ) ");
                     break;
                 case NOT_EQ:
-                    whereSql.append(" `").append(field).append("` ").append(" <> ? ");
+                    StringUtil.append(whereSql, " `%s`  <> ? ", field);
                     setList.add(value);
                     break;
                 case GREATER:
@@ -138,7 +139,7 @@ public class QueryWrapper extends AbstractWrapper implements Wrapper {
                     String[] str = field.split(",");
                     if (whereSql.indexOf(" ORDER BY ") == -1) {
                         whereSql.append(" ORDER BY ");
-                    }else {
+                    } else {
                         whereSql.append(" , ");
                     }
                     for (String f : str) {
@@ -150,7 +151,7 @@ public class QueryWrapper extends AbstractWrapper implements Wrapper {
                     str = field.split(",");
                     if (whereSql.indexOf(" ORDER BY ") == -1) {
                         whereSql.append(" ORDER BY ");
-                    }else {
+                    } else {
                         whereSql.append(" , ");
                     }
                     for (String f : str) {
