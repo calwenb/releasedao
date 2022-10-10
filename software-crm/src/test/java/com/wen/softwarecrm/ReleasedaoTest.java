@@ -116,13 +116,31 @@ public class ReleasedaoTest {
         System.out.println(serving);
         System.out.println(System.currentTimeMillis() - l);
     }
+
     @Test
-    void order(){
+    void order() {
         QueryWrapper wrapper = new QueryWrapper();
         wrapper.order("type,create_time");
         wrapper.orderDesc("update_time");
-        List<Serving> list = baseMapper.getList(Serving.class,wrapper);
+        List<Serving> list = baseMapper.getList(Serving.class, wrapper);
         list.forEach(System.out::println);
+    }
+
+    @Test
+    void in() {
+//        List<Serving> list = baseMapper.getList(Serving.class);
+//        System.out.println(list);
+//
+//        QueryWrapper wrapper = new QueryWrapper();
+//        wrapper.in("user_name", "calwen", 3);
+//        list = baseMapper.getList(Serving.class, wrapper);
+//        System.out.println(list);
+//
+
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.eq("user_name", "calwen");
+        List<Serving> list = baseMapper.getList(Serving.class, wrapper);
+        System.out.println(list);
     }
 
 

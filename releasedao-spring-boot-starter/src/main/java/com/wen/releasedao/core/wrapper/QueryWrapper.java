@@ -78,7 +78,7 @@ public class QueryWrapper extends AbstractWrapper implements Wrapper {
             }
             switch (operating) {
                 case EQ:
-                    StringUtil.append(whereSql, " `%s`  = ? ", field);
+                    StringUtil.append(whereSql, " `{}`  = ? ", field);
                     setList.add(value);
                     break;
                 case IN:
@@ -94,7 +94,7 @@ public class QueryWrapper extends AbstractWrapper implements Wrapper {
                     whereSql.append(" ) ");
                     break;
                 case NOT_EQ:
-                    StringUtil.append(whereSql, " `%s`  <> ? ", field);
+                    StringUtil.append(whereSql, " `{}`  <> ? ", field);
                     setList.add(value);
                     break;
                 case GREATER:

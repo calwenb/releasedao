@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.mysql.cj.util.StringUtils;
 import com.wen.releasedao.core.annotation.FieldName;
-import com.wen.releasedao.core.annotation.IdField;
+import com.wen.releasedao.core.annotation.FieldId;
 import com.wen.releasedao.core.annotation.TableName;
 import com.wen.releasedao.core.enums.SelectTypeEnum;
 import com.wen.releasedao.core.exception.MapperException;
@@ -51,10 +51,10 @@ public class MapperHelper {
     public static <T> String parseId(Class<T> tClass, boolean property) {
         Field[] fields = tClass.getDeclaredFields();
 
-        //找到属性上 @IdField 注解
+        //找到属性上 @FieldId 注解
         for (Field f : fields) {
             f.setAccessible(true);
-            IdField idFieldAnn = f.getDeclaredAnnotation(IdField.class);
+            FieldId idFieldAnn = f.getDeclaredAnnotation(FieldId.class);
             if (idFieldAnn == null) {
                 continue;
             }
@@ -144,7 +144,8 @@ public class MapperHelper {
                 if (fieldsVal[i] != null && fieldsVal[i].getClass().equals(LocalDateTime.class)) {
                     ObjectMapper objectMapper = new ObjectMapper();
                     objectMapper.registerModule(new JavaTimeModule());
-                    fieldsVal[i] = Date.from(objectMapper.convertValue(fieldsVal[i], LocalDateTime.class).atZone(ZoneId.systemDefault()).toInstant());
+                    fieldsVal[i] = Date.from(objectMapper.convertValue(fieldsVal[i], LocalDateTime.class)
+                            .atZone(ZoneId.systemDefault()).toInstant());
                 }
             }
             return classCon.newInstance(fieldsVal);

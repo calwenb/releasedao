@@ -18,7 +18,6 @@ import org.springframework.core.annotation.Order;
 @Aspect
 @Order(Integer.MAX_VALUE - 1)
 public class MapperLogAop {
-
     @Around("execution(public * com.wen.releasedao.core.mapper.BaseMapper.*(..))")
     public Object printfLog(ProceedingJoinPoint joinPoint) throws Throwable {
         Object rs = null;
