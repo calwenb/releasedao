@@ -1,23 +1,30 @@
 package com.wen.releasedao.core.vo;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import javax.validation.constraints.Max;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author calwen
  * @since 2022/10/31
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class PageRequest {
     /**
      * 分页页码
      */
-//    @NotNull(message = "分页页码字段pageNum为必传参数")
-    private Integer page;
+    @NotNull(message = " 分页页码参数 page必传 ")
+    private Integer pageNum;
 
     /**
      * 分页大小
      */
-//    @NotNull(message = "分页大小字段pageSize为必传参数")
-//    @Max(value = 100, message = "分页大小不能大于500")
-    private Integer size;
+    @NotNull(message = " 分页大小参数 size必传 ")
+    @Max(value = 200, message = " 分页大小不可超过200 ")
+    private Integer pageSize;
 }

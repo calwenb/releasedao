@@ -152,8 +152,8 @@ public class ReleasedaoTest {
         System.out.println();
 
         PageRequest request = new PageRequest();
-        request.setPage(2);
-        request.setSize(5);
+        request.setPageNum(2);
+        request.setPageSize(5);
         PageVO<Serving> page = baseMapper.page(Serving.class, request);
         page.getContent().forEach(System.out::println);
         page.setContent(null);

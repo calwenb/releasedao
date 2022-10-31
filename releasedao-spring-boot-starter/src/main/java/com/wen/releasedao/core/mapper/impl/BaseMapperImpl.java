@@ -60,8 +60,8 @@ public class BaseMapperImpl implements BaseMapper {
 
     @Override
     public <T> PageVO<T> page(Class<T> eClass, PageRequest pageRequest) {
-        Integer page = pageRequest.getPage();
-        Integer size = pageRequest.getSize();
+        Integer page = pageRequest.getPageNum();
+        Integer size = pageRequest.getPageSize();
         int total = getCount(eClass);
         int offset = (page - 1) * size;
         QueryWrapper wrapper = new QueryWrapper();
@@ -72,9 +72,9 @@ public class BaseMapperImpl implements BaseMapper {
 
     @Override
     public <T> PageVO<T> page(Class<T> eClass, QueryWrapper wrapper, PageRequest pageRequest) {
-        Integer page = pageRequest.getPage();
-        Integer size = pageRequest.getSize();
-        int total = getCount(eClass);
+        Integer page = pageRequest.getPageNum();
+        Integer size = pageRequest.getPageSize();
+        int total = getCount(eClass, wrapper);
         int offset = (page - 1) * size;
         wrapper.limit(offset, size);
         List<T> list = getList(eClass, wrapper);
