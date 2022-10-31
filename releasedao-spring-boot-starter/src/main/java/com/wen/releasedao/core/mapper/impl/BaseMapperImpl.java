@@ -12,6 +12,8 @@ import com.wen.releasedao.core.exception.MapperException;
 import com.wen.releasedao.core.helper.MapperHelper;
 import com.wen.releasedao.core.manager.LoggerManager;
 import com.wen.releasedao.core.mapper.BaseMapper;
+import com.wen.releasedao.core.vo.PageRequest;
+import com.wen.releasedao.core.vo.PageVO;
 import com.wen.releasedao.core.wrapper.QueryWrapper;
 import com.wen.releasedao.core.wrapper.SetWrapper;
 import com.wen.releasedao.util.CastUtil;
@@ -55,6 +57,30 @@ public class BaseMapperImpl implements BaseMapper {
         return (List<T>) baseSelect(eClass, wrapper, SelectTypeEnum.ALL);
 
     }
+
+    @Override
+    public <T> PageVO<T> page(Class<T> eClass, PageRequest pageRequest) {
+        Integer page = pageRequest.getPage();
+        Integer size = pageRequest.getSize();
+        int total = getCount(eClass);
+        int offset = (page - 1) * size;
+        QueryWrapper wrapper = new QueryWrapper();
+        wrapper.limit(offset, size);
+        List<T> list = getList(eClass, wrapper);
+        return PageVO.of(list, page, size, total);
+    }
+
+    @Override
+    public <T> PageVO<T> page(Class<T> eClass, QueryWrapper wrapper, PageRequest pageRequest) {
+        Integer page = pageRequest.getPage();
+        Integer size = pageRequest.getSize();
+        int total = getCount(eClass);
+        int offset = (page - 1) * size;
+        wrapper.limit(offset, size);
+        List<T> list = getList(eClass, wrapper);
+        return PageVO.of(list, page, size, total);
+    }
+
 
     @Override
 

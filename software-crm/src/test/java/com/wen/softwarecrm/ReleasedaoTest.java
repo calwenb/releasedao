@@ -1,6 +1,8 @@
 package com.wen.softwarecrm;
 
 import com.wen.releasedao.core.mapper.BaseMapper;
+import com.wen.releasedao.core.vo.PageRequest;
+import com.wen.releasedao.core.vo.PageVO;
 import com.wen.releasedao.core.wrapper.QueryWrapper;
 import com.wen.softwarecrm.pojo.Client;
 import com.wen.softwarecrm.pojo.Serving;
@@ -141,6 +143,21 @@ public class ReleasedaoTest {
         wrapper.eq("user_name", "calwen");
         List<Serving> list = baseMapper.getList(Serving.class, wrapper);
         System.out.println(list);
+    }
+
+    @Test
+    void page() {
+        List<Serving> list = baseMapper.getList(Serving.class);
+        list.forEach(System.out::println);
+        System.out.println();
+
+        PageRequest request = new PageRequest();
+        request.setPage(2);
+        request.setSize(5);
+        PageVO<Serving> page = baseMapper.page(Serving.class, request);
+        page.getContent().forEach(System.out::println);
+        page.setContent(null);
+        System.out.println(page);
     }
 
 

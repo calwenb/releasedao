@@ -1,5 +1,7 @@
 package com.wen.releasedao.core.mapper;
 
+import com.wen.releasedao.core.vo.PageRequest;
+import com.wen.releasedao.core.vo.PageVO;
 import com.wen.releasedao.core.wrapper.QueryWrapper;
 import com.wen.releasedao.core.wrapper.SetWrapper;
 
@@ -50,11 +52,26 @@ public interface BaseMapper {
     /**
      * 查询列表 （查询构造器）
      *
-     * @param eClass       实体类型
-     * @param queryWrapper 查询构造器
+     * @param eClass  实体类型
+     * @param wrapper 查询构造器
      * @return 结果集
      */
-    <T> List<T> getList(Class<T> eClass, QueryWrapper queryWrapper);
+    <T> List<T> getList(Class<T> eClass, QueryWrapper wrapper);
+
+    /**
+     * @param eClass      实体类型
+     * @param pageRequest 分页请求
+     * @return 结果
+     */
+    <T> PageVO<T> page(Class<T> eClass, PageRequest pageRequest);
+
+    /**
+     * @param eClass      实体类型
+     * @param wrapper     查询构造器
+     * @param pageRequest 分页请求
+     * @return 结果
+     */
+    <T> PageVO<T> page(Class<T> eClass, QueryWrapper wrapper, PageRequest pageRequest);
 
 
     /**
@@ -64,17 +81,19 @@ public interface BaseMapper {
      * @param eClass 实体类型
      * @return count(*)
      */
-    <T> int getCount(Class<T> eClass);
+    <T>
+
+    int getCount(Class<T> eClass);
 
     /**
      * 返回匹配指定条件的行数
      * count(*)
      *
-     * @param eClass       实体类型
-     * @param queryWrapper 查询构造器
+     * @param eClass  实体类型
+     * @param wrapper 查询构造器
      * @return count(*)
      */
-    <T> int getCount(Class<T> eClass, QueryWrapper queryWrapper);
+    <T> int getCount(Class<T> eClass, QueryWrapper wrapper);
 
     /**
      * 保存 数据<br>
@@ -124,10 +143,10 @@ public interface BaseMapper {
     /**
      * 删除 （根据查询构建器）
      *
-     * @param eClass       实体类型
-     * @param queryWrapper 查询构建器
+     * @param eClass  实体类型
+     * @param wrapper 查询构建器
      */
-    <T> boolean delete(Class<T> eClass, QueryWrapper queryWrapper);
+    <T> boolean delete(Class<T> eClass, QueryWrapper wrapper);
 
     /**
      * 删除 （根据主键）
@@ -140,11 +159,11 @@ public interface BaseMapper {
     /**
      * 更新
      *
-     * @param eClass       实体类型
-     * @param setWrapper   更新构建器
-     * @param queryWrapper 查询构建器
+     * @param eClass     实体类型
+     * @param setWrapper 更新构建器
+     * @param wrapper    查询构建器
      */
-    <T> boolean update(Class<T> eClass, SetWrapper setWrapper, QueryWrapper queryWrapper);
+    <T> boolean update(Class<T> eClass, SetWrapper setWrapper, QueryWrapper wrapper);
 
     /**
      * 自定义 执行sql
