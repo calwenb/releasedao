@@ -11,4 +11,5 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface FieldJoin {
     String value() default "";
+    String point () default "";
 }

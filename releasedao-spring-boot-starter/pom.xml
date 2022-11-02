@@ -13,7 +13,7 @@
 
     <groupId>io.github.calwenb</groupId>
     <artifactId>releasedao-spring-boot-starter</artifactId>
-    <version>1.1.4.5</version>
+    <version>1.1.4.6</version>
 
     <properties>
         <!--project-->
@@ -38,6 +38,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

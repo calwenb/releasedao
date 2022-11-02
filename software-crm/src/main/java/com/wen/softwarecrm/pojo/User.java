@@ -1,6 +1,7 @@
 package com.wen.softwarecrm.pojo;
 
 import com.wen.releasedao.core.annotation.FieldId;
+import com.wen.releasedao.core.annotation.FieldJoin;
 import com.wen.releasedao.core.annotation.TableName;
 import com.wen.releasedao.core.enums.IdTypeEnum;
 import lombok.AllArgsConstructor;
@@ -29,4 +30,6 @@ public class User implements Serializable {
     private String phoneNumber;
     private String email;
     private Date registerTime;
+    @FieldJoin
+    private Address address;
 }

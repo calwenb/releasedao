@@ -28,7 +28,7 @@ public class ConnectionAop {
     }
 
     @Around("pointcut()")
-    public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
+    public synchronized Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         Connection conn;
         try {
             Object target = joinPoint.getTarget();

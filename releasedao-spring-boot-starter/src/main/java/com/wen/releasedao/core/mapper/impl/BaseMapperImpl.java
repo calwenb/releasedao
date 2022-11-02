@@ -370,9 +370,11 @@ public class BaseMapperImpl implements BaseMapper {
                     f.setAccessible(true);
                     Object value;
                     if (SaveTypeEnum.INSERT.equals(saveType)
-                            && (f.isAnnotationPresent(CreateTime.class) || f.isAnnotationPresent(UpdateTime.class))) {
+                            && (f.isAnnotationPresent(CreateTime.class)
+                            || f.isAnnotationPresent(UpdateTime.class))) {
                         value = new Date();
-                    } else if (SaveTypeEnum.REPLACE.equals(saveType) && f.isAnnotationPresent(UpdateTime.class)) {
+                    } else if (SaveTypeEnum.REPLACE.equals(saveType)
+                            && f.isAnnotationPresent(UpdateTime.class)) {
                         value = new Date();
                     } else {
                         value = f.get(entity);
@@ -429,9 +431,11 @@ public class BaseMapperImpl implements BaseMapper {
                         Field field = eClass.getDeclaredField(k);
                         field.setAccessible(true);
                         Object value;
-                        if (field.isAnnotationPresent(CreateTime.class) && SaveTypeEnum.INSERT.equals(saveType)) {
+                        if (field.isAnnotationPresent(CreateTime.class)
+                                && SaveTypeEnum.INSERT.equals(saveType)) {
                             value = new Date();
-                        } else if (field.isAnnotationPresent(UpdateTime.class) && SaveTypeEnum.REPLACE.equals(saveType)) {
+                        } else if (field.isAnnotationPresent(UpdateTime.class)
+                                && SaveTypeEnum.REPLACE.equals(saveType)) {
                             value = new Date();
                         } else {
                             value = field.get(entity);

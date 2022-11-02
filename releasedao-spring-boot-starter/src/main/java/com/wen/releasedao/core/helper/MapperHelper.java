@@ -3,6 +3,7 @@ package com.wen.releasedao.core.helper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.mysql.cj.util.StringUtils;
+import com.wen.releasedao.core.annotation.FieldJoin;
 import com.wen.releasedao.core.annotation.FieldName;
 import com.wen.releasedao.core.annotation.FieldId;
 import com.wen.releasedao.core.annotation.TableName;
@@ -133,8 +134,21 @@ public class MapperHelper {
             Object[] fieldsVal = new Object[fields.length];
             for (int i = 0; i < fields.length; i++) {
                 //从 字段映射中获取 sql字段
-                fields[i].setAccessible(true);
-                String fieldName = fields[i].getName();
+                Field field = fields[i];
+                field.setAccessible(true);
+                FieldJoin joinAnno = field.getDeclaredAnnotation(FieldJoin.class);
+                if (joinAnno != null) {
+                    Class<?> cClass = field.getClass();
+                    Map<String, String> cResultMap = resultMap(cClass);
+                    Field[] cFields = cClass.getDeclaredFields();
+                    Constructor<?> cClassCon = getConstructor(cClass);
+                    Object child = parseEntity(rs, cResultMap, cFields, cClassCon);
+                    fieldsVal[i]=child;
+                    continue;
+                }
+
+                String fieldName = field.getName();
+
                 String sqlField = resultMap.get(fieldName);
                 if (sqlField == null) {
                     continue;
@@ -172,6 +186,7 @@ public class MapperHelper {
                     return rs.getInt(1);
                 }
                 T entity = parseEntity(rs, resultMap, fields, classCon);
+                // 单个实体
                 if (type == SelectTypeEnum.ONE) {
                     return entity;
                 }
