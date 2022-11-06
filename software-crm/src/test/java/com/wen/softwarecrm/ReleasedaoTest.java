@@ -148,16 +148,16 @@ public class ReleasedaoTest {
     @Test
     void page() {
         List<Serving> list = baseMapper.getList(Serving.class);
-        list.forEach(System.out::println);
-        System.out.println();
-
-        PageRequest request = new PageRequest();
-        request.setPageNum(2);
-        request.setPageSize(5);
-        PageVO<Serving> page = baseMapper.page(Serving.class, request);
-        page.getContent().forEach(System.out::println);
-        page.setContent(null);
-        System.out.println(page);
+//        list.forEach(System.out::println);
+//        System.out.println();
+//
+//        PageRequest request = new PageRequest();
+//        request.setPageNum(2);
+//        request.setPageSize(5);
+//        PageVO<Serving> page = baseMapper.page(Serving.class, request);
+//        page.getContent().forEach(System.out::println);
+//        page.setContent(null);
+//        System.out.println(page);
     }
 
 

@@ -81,9 +81,7 @@ public interface BaseMapper {
      * @param eClass 实体类型
      * @return count(*)
      */
-    <T>
-
-    int getCount(Class<T> eClass);
+    <T> int getCount(Class<T> eClass);
 
     /**
      * 返回匹配指定条件的行数

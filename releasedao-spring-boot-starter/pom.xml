@@ -13,7 +13,7 @@
 
     <groupId>io.github.calwenb</groupId>
     <artifactId>releasedao-spring-boot-starter</artifactId>
-    <version>1.1.4.6</version>
+    <version>1.1.4.7</version>
 
     <properties>
         <!--project-->
@@ -136,7 +136,7 @@
             </plugin>
         </plugins>
     </build>
-
+<!--
 
     <licenses>
         <license>
@@ -231,5 +231,5 @@
                 </plugins>
             </build>
         </profile>
-    </profiles>
+    </profiles>-->
 </project>

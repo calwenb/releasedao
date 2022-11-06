@@ -1,13 +1,10 @@
 package com.wen.releasedao.core.mapper.impl;
 
 import com.mysql.cj.util.StringUtils;
-import com.wen.releasedao.core.annotation.CacheQuery;
-import com.wen.releasedao.core.annotation.CacheUpdate;
-import com.wen.releasedao.core.annotation.CreateTime;
-import com.wen.releasedao.core.annotation.UpdateTime;
+import com.wen.releasedao.core.annotation.*;
+import com.wen.releasedao.core.bo.MapperBO;
 import com.wen.releasedao.core.enums.CacheUpdateEnum;
-import com.wen.releasedao.core.enums.SaveTypeEnum;
-import com.wen.releasedao.core.enums.SelectTypeEnum;
+import com.wen.releasedao.core.enums.MapperTypeEnum;
 import com.wen.releasedao.core.exception.MapperException;
 import com.wen.releasedao.core.helper.MapperHelper;
 import com.wen.releasedao.core.manager.LoggerManager;
@@ -17,6 +14,7 @@ import com.wen.releasedao.core.vo.PageVO;
 import com.wen.releasedao.core.wrapper.QueryWrapper;
 import com.wen.releasedao.core.wrapper.SetWrapper;
 import com.wen.releasedao.util.CastUtil;
+import com.wen.releasedao.util.StringUtil;
 import org.springframework.beans.BeanUtils;
 
 import java.lang.reflect.Field;
@@ -43,18 +41,22 @@ public class BaseMapperImpl implements BaseMapper {
 
     @Override
     public <T> int getCount(Class<T> eClass, QueryWrapper wrapper) {
-        return (int) baseSelect(eClass, wrapper, SelectTypeEnum.COUNT);
+        return (int) baseSelect(eClass, wrapper, MapperTypeEnum.SELECT_COUNT);
     }
 
     @Override
     public <T> int getCount(Class<T> eClass) {
-        return (int) baseSelect(eClass, null, SelectTypeEnum.COUNT);
+        return (int) baseSelect(eClass, null, MapperTypeEnum.SELECT_COUNT);
     }
 
     @Override
+    public <T> List<T> getList(Class<T> eClass) {
+        return (List<T>) baseSelect(eClass, null, MapperTypeEnum.SELECT_ALL);
+    }
 
+    @Override
     public <T> List<T> getList(Class<T> eClass, QueryWrapper wrapper) {
-        return (List<T>) baseSelect(eClass, wrapper, SelectTypeEnum.ALL);
+        return (List<T>) baseSelect(eClass, wrapper, MapperTypeEnum.SELECT_ALL);
 
     }
 
@@ -81,57 +83,47 @@ public class BaseMapperImpl implements BaseMapper {
         return PageVO.of(list, page, size, total);
     }
 
-
-    @Override
-
-    public <T> List<T> getList(Class<T> eClass) {
-        return (List<T>) baseSelect(eClass, null, SelectTypeEnum.ALL);
-    }
-
     @Override
     @CacheQuery
-
     public <T> T get(Class<T> eClass, QueryWrapper wrapper) {
-        return (T) baseSelect(eClass, wrapper, SelectTypeEnum.ONE);
+        return (T) baseSelect(eClass, wrapper, MapperTypeEnum.SELECT_ONE);
     }
 
 
     @Override
     @CacheQuery
-
     public <T> T getById(Class<T> eClass, Object id) {
         QueryWrapper wrapper = new QueryWrapper();
         wrapper.eq(MapperHelper.parseId(eClass, false), id);
-        return (T) baseSelect(eClass, wrapper, SelectTypeEnum.ONE);
+        return (T) baseSelect(eClass, wrapper, MapperTypeEnum.SELECT_ONE);
     }
 
     @Override
-
     public <T> T get(Class<T> eClass) {
-        return (T) baseSelect(eClass, null, SelectTypeEnum.ONE);
+        return (T) baseSelect(eClass, null, MapperTypeEnum.SELECT_ONE);
     }
 
     @Override
     public <T> boolean add(T entity) {
-        return baseSave(entity, SaveTypeEnum.INSERT) > 0;
+        return baseSave(entity, MapperTypeEnum.INSERT) > 0;
     }
 
 
     @Override
     public <T> boolean addBatch(List<T> entityList) {
-        return baseBatchSave(entityList, SaveTypeEnum.INSERT) > 0;
+        return baseBatchSave(entityList, MapperTypeEnum.INSERT) > 0;
     }
 
     @Override
     @CacheUpdate(CacheUpdateEnum.ENTITY)
     public <T> boolean replace(T entity) {
-        return baseSave(entity, SaveTypeEnum.REPLACE) > 0;
+        return baseSave(entity, MapperTypeEnum.REPLACE) > 0;
     }
 
     @Override
     @CacheUpdate(CacheUpdateEnum.BATCH)
     public <T> boolean replaceBatch(List<T> entityList) {
-        return baseBatchSave(entityList, SaveTypeEnum.REPLACE) > 0;
+        return baseBatchSave(entityList, MapperTypeEnum.REPLACE) > 0;
     }
 
     @CacheUpdate(CacheUpdateEnum.ENTITY)
@@ -150,12 +142,12 @@ public class BaseMapperImpl implements BaseMapper {
         PreparedStatement pst = null;
         try {
             pst = conn.prepareStatement(sql);
-            Map<String, String> resultMap = MapperHelper.resultMap(eClass);
             for (int i = 0; values != null && i < values.length; i++) {
                 pst.setObject(i + 1, values[i]);
             }
             ResultSet rs = pst.executeQuery();
-            return (List<T>) MapperHelper.getEntity(rs, resultMap, eClass, null);
+            MapperBO<T> mapperBO = MapperHelper.buildMapperBO(eClass, MapperTypeEnum.SELECT_ALL, null);
+            return (List<T>) MapperHelper.getEntity(rs, mapperBO);
         } catch (Exception e) {
             throw new MapperException("自定义查询SQL 时异常", e);
         } finally {
@@ -288,17 +280,16 @@ public class BaseMapperImpl implements BaseMapper {
      * @param wrapper 查询构造器
      * @param type    查询类型
      */
-    private <T> Object baseSelect(Class<T> eClass, QueryWrapper wrapper, SelectTypeEnum type) {
+    private <T> Object baseSelect(Class<T> eClass, QueryWrapper wrapper, MapperTypeEnum type) {
+        MapperBO<T> mapperBO = MapperHelper.buildMapperBO(eClass, type, null);
         PreparedStatement pst = null;
-        StringBuilder sql = new StringBuilder();
+        StringBuilder sql = mapperBO.getSql();
         List<Object> values = new ArrayList<>();
         try {
-            String tableName = MapperHelper.parseTableName(eClass);
-            Map<String, String> resultMap = MapperHelper.resultMap(eClass);
-            //sql拼接
-            sql = new StringBuilder();
+            String tableName = mapperBO.getTableName();
+            Map<String, String> resultMap = mapperBO.getResultMap();
             sql.append("SELECT ");
-            if (Objects.equals(type, SelectTypeEnum.COUNT)) {
+            if (Objects.equals(type, MapperTypeEnum.SELECT_COUNT)) {
                 sql.append(" COUNT(*) ");
             } else if (wrapper != null && !StringUtils.isNullOrEmpty(wrapper.getSelectField())) {
                 //自定义 查询结果：剔除字段映射map 中 不查询的 字段
@@ -308,13 +299,10 @@ public class BaseMapperImpl implements BaseMapper {
                     return Arrays.asList(selectFields).contains(sqlField);
                 }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
                 sql.append(wrapper.getSelectField());
-                System.out.println(resultMap);
             } else {
                 sql.append(" * ");
             }
-
             sql.append(" FROM ").append(tableName).append(" ");
-
             //有Wrapper时
             if (wrapper != null) {
                 //条件查询
@@ -334,7 +322,7 @@ public class BaseMapperImpl implements BaseMapper {
             }
             ResultSet rs = pst.executeQuery();
             // 将sql结果集解析 对象或对象集
-            return MapperHelper.getEntity(rs, resultMap, eClass, type);
+            return MapperHelper.getEntity(rs, mapperBO);
         } catch (Exception e) {
             throw new MapperException("查询 时异常", e);
         } finally {
@@ -347,45 +335,25 @@ public class BaseMapperImpl implements BaseMapper {
      * 提供saveType执行INSERT、REPLACE操作
      *
      * @param entity-数据
-     * @param saveType-保存类型
+     * @param type-保存类型
      */
-    private <T> int baseSave(T entity, SaveTypeEnum saveType) {
+    private <T> int baseSave(T entity, MapperTypeEnum type) {
+        if (entity == null) {
+            throw new MapperException("[save] 插入数据不能为 Null ");
+        }
         PreparedStatement pst = null;
-        StringBuilder sql = new StringBuilder();
+        Class<T> eClass = (Class<T>) entity.getClass();
+        MapperBO<T> mapperBO = MapperHelper.buildMapperBO(eClass, type, entity);
+        StringBuilder sql = mapperBO.getSql();
         List<Object> values = new ArrayList<>();
         try {
-            Class<?> eClass = entity.getClass();
-            Map<String, String> resultMap = MapperHelper.resultMap(eClass);
-            baseSaveSqlPrefix(eClass, resultMap, saveType, sql);
-            baseSaveSqlQuestion(resultMap, sql);
+            this.baseSaveSqlPrefix(mapperBO);
+            this.baseSaveSqlQuestion(mapperBO);
             sql.append(" ) ");
             pst = conn.prepareStatement(String.valueOf(sql), PreparedStatement.RETURN_GENERATED_KEYS);
             //填充Entity实现动态更新
-            fillingEntity(eClass, entity, saveType);
-            AtomicInteger i = new AtomicInteger(1);
-            PreparedStatement finalPst = pst;
-            resultMap.forEach((k, v) -> {
-                try {
-                    Field f = eClass.getDeclaredField(k);
-                    f.setAccessible(true);
-                    Object value;
-                    if (SaveTypeEnum.INSERT.equals(saveType)
-                            && (f.isAnnotationPresent(CreateTime.class)
-                            || f.isAnnotationPresent(UpdateTime.class))) {
-                        value = new Date();
-                    } else if (SaveTypeEnum.REPLACE.equals(saveType)
-                            && f.isAnnotationPresent(UpdateTime.class)) {
-                        value = new Date();
-                    } else {
-                        value = f.get(entity);
-                    }
-                    finalPst.setObject(i.get(), value);
-                    values.add(value);
-                    i.getAndIncrement();
-                } catch (Exception e) {
-                    throw new MapperException("设置预编译 时异常", e);
-                }
-            });
+            this.fillingEntity(mapperBO);
+            this.setBaseSaveValue(mapperBO, pst, values);
             int rs = pst.executeUpdate();
             //更新原实体
             ResultSet GeneratedKeys = pst.getGeneratedKeys();
@@ -406,48 +374,22 @@ public class BaseMapperImpl implements BaseMapper {
     /**
      * 批量保存
      */
-    private <T> int baseBatchSave(List<T> entityList, SaveTypeEnum saveType) {
+    private <T> int baseBatchSave(List<T> entityList, MapperTypeEnum type) {
         PreparedStatement pst = null;
         StringBuilder sql = new StringBuilder();
         List<Object> values = new ArrayList<>();
         try {
-            Class<?> eClass = entityList.get(0).getClass();
+            Class<T> eClass = (Class<T>) entityList.get(0).getClass();
             int listSize = entityList.size();
-            Map<String, String> resultMap = MapperHelper.resultMap(eClass);
-
-            baseSaveSqlPrefix(eClass, resultMap, saveType, sql);
+            MapperBO<T> mapperBO = MapperHelper.buildMapperBO(eClass, type, null);
+            this.baseSaveSqlPrefix(mapperBO);
             for (int i = 0; i < listSize; i++) {
-                baseSaveSqlQuestion(resultMap, sql);
+                this.baseSaveSqlQuestion(mapperBO);
                 sql.append(" ) ,");
             }
             sql.deleteCharAt(sql.length() - 1);
-
             pst = conn.prepareStatement(String.valueOf(sql));
-            AtomicInteger i = new AtomicInteger(1);
-            for (T entity : entityList) {
-                PreparedStatement finalPst = pst;
-                resultMap.forEach((k, v) -> {
-                    try {
-                        Field field = eClass.getDeclaredField(k);
-                        field.setAccessible(true);
-                        Object value;
-                        if (field.isAnnotationPresent(CreateTime.class)
-                                && SaveTypeEnum.INSERT.equals(saveType)) {
-                            value = new Date();
-                        } else if (field.isAnnotationPresent(UpdateTime.class)
-                                && SaveTypeEnum.REPLACE.equals(saveType)) {
-                            value = new Date();
-                        } else {
-                            value = field.get(entity);
-                        }
-                        finalPst.setObject(i.get(), value);
-                        values.add(value);
-                        i.getAndIncrement();
-                    } catch (Exception e) {
-                        throw new MapperException("批量保存 预编译 时异常", e);
-                    }
-                });
-            }
+            this.setBaseSaveValue(mapperBO, pst, values);
             return pst.executeUpdate();
         } catch (SQLException e) {
             throw new MapperException("批量保存 时异常", e);
@@ -456,36 +398,65 @@ public class BaseMapperImpl implements BaseMapper {
         }
     }
 
+    private <T> void setBaseSaveValue(MapperBO<T> mapperBO, PreparedStatement pst, List<Object> values) {
+        Class<T> eClass = mapperBO.getEClass();
+        MapperTypeEnum type = mapperBO.getMapperTypeEnum();
+        T entity = mapperBO.getEntity();
+        AtomicInteger i = new AtomicInteger(1);
+        mapperBO.getResultMap().forEach((k, v) -> {
+            try {
+                Field f = eClass.getDeclaredField(k);
+                f.setAccessible(true);
+                Object value;
+                if (MapperTypeEnum.INSERT.equals(type) && (f.isAnnotationPresent(CreateTime.class) || f.isAnnotationPresent(UpdateTime.class))) {
+                    value = new Date();
+                } else if (MapperTypeEnum.REPLACE.equals(type) && f.isAnnotationPresent(UpdateTime.class)) {
+                    value = new Date();
+                } else {
+                    value = f.get(entity);
+                }
+                pst.setObject(i.get(), value);
+                values.add(value);
+                i.getAndIncrement();
+            } catch (Exception e) {
+                throw new MapperException("设置预编译 时异常", e);
+            }
+        });
+    }
+
     /**
      * baseSave sql前缀拼接
      */
-    private void baseSaveSqlPrefix(Class<?> eClass, Map<String, String> resultMap, SaveTypeEnum saveType, StringBuilder sql) {
-        String tableName = MapperHelper.parseTableName(eClass);
-        sql.append(saveType.name()).append(" INTO ").append(tableName).append(" ( ");
-        resultMap.forEach((k, v) -> sql.append(v).append(" , "));
+    private <T> void baseSaveSqlPrefix(MapperBO<T> mapperBO) {
+        String type = mapperBO.getMapperTypeEnum().name();
+        String tableName = mapperBO.getTableName();
+        StringBuilder sql = mapperBO.getSql();
+        StringUtil.append(sql, " {} INTO {} ( ", type, tableName);
+        mapperBO.getResultMap().forEach((k, v) -> {
+            StringUtil.append(sql, " `{}` ,", v);
+        });
         sql.delete(sql.lastIndexOf(","), sql.length()).append(" ) ").append(" VALUES ");
     }
 
     /**
      * baseSaveSql 问号拼接
      */
-    private void baseSaveSqlQuestion(Map<String, String> resultMap, StringBuilder sql) {
+    private <T> void baseSaveSqlQuestion(MapperBO<T> mapperBO) {
+        StringBuilder sql = mapperBO.getSql();
         sql.append(" ( ");
-        for (int i = 0; i < resultMap.size(); i++) {
-            if (i == resultMap.size() - 1) {
-                sql.append(" ? ");
-                break;
-            }
-            sql.append(" ?, ");
-        }
+        mapperBO.getResultMap().forEach((k, v) -> sql.append(" ? ,"));
+        sql.deleteCharAt(sql.length() - 1);
     }
 
     /**
      * 更新操作时，通过主键将Entity中属性填充
      */
-    private void fillingEntity(Class<?> eClass, Object entity, SaveTypeEnum saveType) throws IllegalAccessException, NoSuchFieldException {
+    private <T> void fillingEntity(MapperBO<T> mapperBO) throws IllegalAccessException, NoSuchFieldException {
+        T entity = mapperBO.getEntity();
+        Class<T> eClass = mapperBO.getEClass();
+        MapperTypeEnum type = mapperBO.getMapperTypeEnum();
         //插入不操作
-        if (SaveTypeEnum.INSERT.equals(saveType)) {
+        if (MapperTypeEnum.INSERT.equals(type)) {
             return;
         }
         String fid = MapperHelper.parseId(eClass, true);
@@ -511,3 +482,37 @@ public class BaseMapperImpl implements BaseMapper {
         }
     }
 }
+
+/**
+ * if (entity != null) {
+ * Field f = eClass.getField(k);
+ * if (f.get(entity) == null) {
+ * FieldValue valueAnn = f.getAnnotation(FieldValue.class);
+ * if (valueAnn != null) {
+ * StringUtil.append(sql, " `{}` ,", valueAnn.value());
+ * sql.delete(sql.lastIndexOf(","), sql.length()).append(" ) ").append(" VALUES ");
+ * return;
+ * }
+ * }
+ * String value = valueAnn.value();
+ * switch (f.getClass().getSimpleName()) {
+ * case "String":
+ * break;
+ * case "Integer":
+ * break;
+ * case "Long":
+ * break;
+ * case "Short":
+ * break;
+ * case "Byte":
+ * break;
+ * case "Character":
+ * break;
+ * case "Double":
+ * break;
+ * case "Float":
+ * break;
+ * case "Boolean":
+ * break;
+ * }
+ */

@@ -8,8 +8,8 @@ spring:
   datasource:
     # 配置数据源
     username: root
-    password: WHL531124
-    url: jdbc:mysql://101.43.95.238:3306/software_crm?serverTimezone=Hongkong
+    password: WHL123456
+    url: jdbc:mysql://1.117.95.71:3306/software_crm?serverTimezone=Hongkong
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
     # 配置druid数据源
@@ -26,7 +26,7 @@ spring:
       use-global-data-source-stat: true
       connection-properties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=500
   redis:
-    host: 101.43.95.238
+    host: 1.117.95.71
     port: 6379
     database: 6 #Redis数据库索引（默认为0）
     password: WHL531124

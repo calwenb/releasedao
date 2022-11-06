@@ -1,5 +1,8 @@
 package com.wen.releasedao.core.helper;
 
+
+import java.util.HashMap;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.mysql.cj.util.StringUtils;
@@ -7,7 +10,8 @@ import com.wen.releasedao.core.annotation.FieldJoin;
 import com.wen.releasedao.core.annotation.FieldName;
 import com.wen.releasedao.core.annotation.FieldId;
 import com.wen.releasedao.core.annotation.TableName;
-import com.wen.releasedao.core.enums.SelectTypeEnum;
+import com.wen.releasedao.core.bo.MapperBO;
+import com.wen.releasedao.core.enums.MapperTypeEnum;
 import com.wen.releasedao.core.exception.MapperException;
 import com.wen.releasedao.util.SqlUtil;
 
@@ -26,12 +30,35 @@ import java.util.*;
  * @since 2022/7/9
  */
 public class MapperHelper {
+
+    public static <T> MapperBO<T> buildMapperBO(Class<T> eClass, MapperTypeEnum type, T entity) {
+        String classId = parseId(eClass, true);
+        String dbId = parseId(eClass, false);
+        String tableName = parseTableName(eClass);
+        Field[] fields = parseField(eClass);
+        Map<String, String> resultMap = parseResultMap(eClass);
+        Constructor<T> constructor = parseConstructor(eClass);
+        MapperBO<T> bo = new MapperBO<>();
+        bo.setEClass(eClass);
+        bo.setEntity(entity);
+        bo.setClassId(classId);
+        bo.setDbId(dbId);
+        bo.setTableName(tableName);
+        bo.setFields(fields);
+        bo.setClassCon(constructor);
+        bo.setSql(new StringBuilder());
+        bo.setMapperTypeEnum(type);
+        bo.setResultMap(resultMap);
+        bo.setNeedMap(new HashMap<>());
+        return bo;
+    }
+
     /**
      * 解析字段
      * 过滤 @FieldName(exist = false)
      */
-    public static <T> Field[] parseField(Class<T> tClass) {
-        Field[] fields = tClass.getDeclaredFields();
+    public static <T> Field[] parseField(Class<T> eClass) {
+        Field[] fields = eClass.getDeclaredFields();
         fields = Arrays.stream(fields).filter((f) -> {
             f.setAccessible(true);
             FieldName annotation = f.getDeclaredAnnotation(FieldName.class);
@@ -46,11 +73,12 @@ public class MapperHelper {
 
     /**
      * 解析 主键id
-     * @param property-是否返回类属性
+     *
+     * @param property-是否 返回类属性名，否则数据库字段
      * @return 主键
      */
-    public static <T> String parseId(Class<T> tClass, boolean property) {
-        Field[] fields = tClass.getDeclaredFields();
+    public static <T> String parseId(Class<T> eClass, boolean property) {
+        Field[] fields = eClass.getDeclaredFields();
 
         //找到属性上 @FieldId 注解
         for (Field f : fields) {
@@ -82,11 +110,10 @@ public class MapperHelper {
      * 解析表名
      * &#064;TableName("name")
      */
-    public static <T> String parseTableName(Class<T> tClass) {
+    public static <T> String parseTableName(Class<T> eClass) {
         //反射获取目标信息
-        TableName tableNameAnno = tClass.getDeclaredAnnotation(TableName.class);
-        String className = tClass.getSimpleName();
-
+        TableName tableNameAnno = eClass.getDeclaredAnnotation(TableName.class);
+        String className = eClass.getSimpleName();
         //确定表名
         String tableName;
         if (tableNameAnno != null) {
@@ -101,8 +128,8 @@ public class MapperHelper {
     /**
      * 解析 对象字段与sql字段映射
      */
-    public static <T> Map<String, String> resultMap(Class<T> tClass) {
-        Field[] fields = tClass.getDeclaredFields();
+    public static <T> Map<String, String> parseResultMap(Class<T> eClass) {
+        Field[] fields = eClass.getDeclaredFields();
         Map<String, String> map = new LinkedHashMap<>(fields.length);
         Arrays.stream(fields).filter((f) -> {
             f.setAccessible(true);
@@ -129,7 +156,10 @@ public class MapperHelper {
     /**
      * 解析生成对象
      */
-    public static <T> T parseEntity(ResultSet rs, Map<String, String> resultMap, Field[] fields, Constructor<T> classCon) {
+    public static <T> T parseEntity(ResultSet rs, MapperBO<T> mapperBO) {
+        Field[] fields = mapperBO.getFields();
+        Map<String, String> resultMap = mapperBO.getResultMap();
+        Constructor<T> classCon = mapperBO.getClassCon();
         try {
             Object[] fieldsVal = new Object[fields.length];
             for (int i = 0; i < fields.length; i++) {
@@ -139,16 +169,12 @@ public class MapperHelper {
                 FieldJoin joinAnno = field.getDeclaredAnnotation(FieldJoin.class);
                 if (joinAnno != null) {
                     Class<?> cClass = field.getClass();
-                    Map<String, String> cResultMap = resultMap(cClass);
-                    Field[] cFields = cClass.getDeclaredFields();
-                    Constructor<?> cClassCon = getConstructor(cClass);
-                    Object child = parseEntity(rs, cResultMap, cFields, cClassCon);
-                    fieldsVal[i]=child;
+                    MapperBO<?> mapperBO1 = buildMapperBO(cClass, MapperTypeEnum.SELECT, null);
+                    Object child = parseEntity(rs, mapperBO1);
+                    fieldsVal[i] = child;
                     continue;
                 }
-
                 String fieldName = field.getName();
-
                 String sqlField = resultMap.get(fieldName);
                 if (sqlField == null) {
                     continue;
@@ -158,8 +184,7 @@ public class MapperHelper {
                 if (fieldsVal[i] != null && fieldsVal[i].getClass().equals(LocalDateTime.class)) {
                     ObjectMapper objectMapper = new ObjectMapper();
                     objectMapper.registerModule(new JavaTimeModule());
-                    fieldsVal[i] = Date.from(objectMapper.convertValue(fieldsVal[i], LocalDateTime.class)
-                            .atZone(ZoneId.systemDefault()).toInstant());
+                    fieldsVal[i] = Date.from(objectMapper.convertValue(fieldsVal[i], LocalDateTime.class).atZone(ZoneId.systemDefault()).toInstant());
                 }
             }
             return classCon.newInstance(fieldsVal);
@@ -172,28 +197,25 @@ public class MapperHelper {
     /**
      * 获得查询结果，解析成对象
      */
-    public static <T> Object getEntity(ResultSet rs, Map<String, String> resultMap, Class<T> tClass, SelectTypeEnum type) {
+    public static <T> Object getEntity(ResultSet rs, MapperBO<T> mapperBO) {
+        MapperTypeEnum type = mapperBO.getMapperTypeEnum();
         try {
             List<T> list = new ArrayList<>();
-            //获得 对象属性数组，类构造器,字段映射
-            Field[] fields = tClass.getDeclaredFields();
-            Constructor<T> classCon = MapperHelper.getConstructor(tClass);
-
             //返回数据解析实体
             while (rs.next()) {
                 // count(*)
-                if (Objects.equals(type, SelectTypeEnum.COUNT)) {
+                if (Objects.equals(type, MapperTypeEnum.SELECT_COUNT)) {
                     return rs.getInt(1);
                 }
-                T entity = parseEntity(rs, resultMap, fields, classCon);
+                T entity = parseEntity(rs, mapperBO);
                 // 单个实体
-                if (type == SelectTypeEnum.ONE) {
+                if (type == MapperTypeEnum.SELECT_ONE) {
                     return entity;
                 }
                 list.add(entity);
             }
             // 集合返回则不能返回null
-            if (SelectTypeEnum.ALL.equals(type)) {
+            if (MapperTypeEnum.SELECT_ALL.equals(type)) {
                 return list;
             }
             return list.isEmpty() ? null : list;
@@ -205,18 +227,20 @@ public class MapperHelper {
     /**
      * 获取类构造器
      */
-    public static <T> Constructor<T> getConstructor(Class<T> tClass) {
+    public static <T> Constructor<T> parseConstructor(Class<T> eClass) {
         try {
-            Field[] fields = tClass.getDeclaredFields();
+            Field[] fields = eClass.getDeclaredFields();
             //获取全部属性的类
             Class<?>[] classes = new Class[fields.length];
             for (int i = 0; i < fields.length; i++) {
                 fields[i].setAccessible(true);
                 classes[i] = fields[i].getType();
             }
-            return tClass.getDeclaredConstructor(classes);
+            return eClass.getDeclaredConstructor(classes);
         } catch (NoSuchMethodException e) {
             throw new MapperException("获取构建器时异常", e);
         }
     }
+
+
 }
