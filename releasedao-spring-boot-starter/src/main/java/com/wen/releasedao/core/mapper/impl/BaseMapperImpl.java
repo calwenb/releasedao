@@ -407,13 +407,21 @@ public class BaseMapperImpl implements BaseMapper {
             try {
                 Field f = eClass.getDeclaredField(k);
                 f.setAccessible(true);
-                Object value;
-                if (MapperTypeEnum.INSERT.equals(type) && (f.isAnnotationPresent(CreateTime.class) || f.isAnnotationPresent(UpdateTime.class))) {
-                    value = new Date();
-                } else if (MapperTypeEnum.REPLACE.equals(type) && f.isAnnotationPresent(UpdateTime.class)) {
-                    value = new Date();
-                } else {
+                Object value = f.get(entity);
+                if (value != null) {
                     value = f.get(entity);
+                } else if (MapperTypeEnum.INSERT.equals(type)
+                        && (f.isAnnotationPresent(CreateTime.class) || f.isAnnotationPresent(UpdateTime.class))) {
+                    value = new Date();
+                } else if (MapperTypeEnum.REPLACE.equals(type)
+                        && f.isAnnotationPresent(UpdateTime.class)) {
+                    value = new Date();
+                } else if (f.isAnnotationPresent(Column.class)) {
+                    Column columnAnno = f.getDeclaredAnnotation(Column.class);
+                    String defaultValue = columnAnno.defaultValue();
+                    if (!StringUtils.isNullOrEmpty(defaultValue)) {
+                        value = parseDefault(f.getClass().getSimpleName(), defaultValue);
+                    }
                 }
                 pst.setObject(i.get(), value);
                 values.add(value);
@@ -422,6 +430,31 @@ public class BaseMapperImpl implements BaseMapper {
                 throw new MapperException("设置预编译 时异常", e);
             }
         });
+    }
+
+    private Object parseDefault(String className, String value) {
+        switch (className) {
+            case "String":
+                return value;
+            case "Integer":
+                return Integer.valueOf(value);
+            case "Long":
+                return Long.valueOf(value);
+            case "Short":
+                return Short.valueOf(value);
+            case "Byte":
+                return Byte.valueOf(value);
+            case "Character":
+                return value.charAt(0);
+            case "Double":
+                return Double.valueOf(value);
+            case "Float":
+                return Float.valueOf(value);
+            case "Boolean":
+                return Boolean.valueOf(value);
+            default:
+                throw new MapperException("默认值仅支持基本类型");
+        }
     }
 
     /**

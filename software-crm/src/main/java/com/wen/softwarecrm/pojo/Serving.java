@@ -1,7 +1,7 @@
 package com.wen.softwarecrm.pojo;
 
+import com.wen.releasedao.core.annotation.Column;
 import com.wen.releasedao.core.annotation.CreateTime;
-import com.wen.releasedao.core.annotation.FieldName;
 import com.wen.releasedao.core.annotation.TableName;
 import com.wen.releasedao.core.annotation.UpdateTime;
 import lombok.AllArgsConstructor;
@@ -26,6 +26,6 @@ public class Serving {
     @UpdateTime
     private Date updateTime;
 
-    @FieldName(exist = false)
+    @Column(exist = false)
     private User user;
 }

@@ -1,7 +1,8 @@
 package com.wen.softwarecrm.pojo;
 
-import com.wen.releasedao.core.annotation.FieldId;
-import com.wen.releasedao.core.annotation.FieldJoin;
+import com.wen.releasedao.core.annotation.Column;
+import com.wen.releasedao.core.annotation.ColumnId;
+import com.wen.releasedao.core.annotation.ColumnJoin;
 import com.wen.releasedao.core.annotation.TableName;
 import com.wen.releasedao.core.enums.IdTypeEnum;
 import lombok.AllArgsConstructor;
@@ -21,7 +22,7 @@ import java.util.Date;
 @NoArgsConstructor
 @TableName("user")
 public class User implements Serializable {
-    @FieldId(idType = IdTypeEnum.AUTO)
+    @ColumnId(idType = IdTypeEnum.AUTO)
     private Integer id;
     private String userName;
     private String loginName;
@@ -30,6 +31,7 @@ public class User implements Serializable {
     private String phoneNumber;
     private String email;
     private Date registerTime;
-    @FieldJoin
+    @ColumnJoin
+    @Column(exist = false)
     private Address address;
 }

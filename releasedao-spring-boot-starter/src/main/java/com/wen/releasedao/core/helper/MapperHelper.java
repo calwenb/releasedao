@@ -6,9 +6,9 @@ import java.util.HashMap;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.mysql.cj.util.StringUtils;
-import com.wen.releasedao.core.annotation.FieldJoin;
-import com.wen.releasedao.core.annotation.FieldName;
-import com.wen.releasedao.core.annotation.FieldId;
+import com.wen.releasedao.core.annotation.Column;
+import com.wen.releasedao.core.annotation.ColumnId;
+import com.wen.releasedao.core.annotation.ColumnJoin;
 import com.wen.releasedao.core.annotation.TableName;
 import com.wen.releasedao.core.bo.MapperBO;
 import com.wen.releasedao.core.enums.MapperTypeEnum;
@@ -58,18 +58,8 @@ public class MapperHelper {
      * 过滤 @FieldName(exist = false)
      */
     public static <T> Field[] parseField(Class<T> eClass) {
-        Field[] fields = eClass.getDeclaredFields();
-        fields = Arrays.stream(fields).filter((f) -> {
-            f.setAccessible(true);
-            FieldName annotation = f.getDeclaredAnnotation(FieldName.class);
-            if (annotation != null) {
-                return annotation.exist();
-            }
-            return true;
-        }).toArray(Field[]::new);
-        return fields;
+        return eClass.getDeclaredFields();
     }
-
 
     /**
      * 解析 主键id
@@ -79,11 +69,10 @@ public class MapperHelper {
      */
     public static <T> String parseId(Class<T> eClass, boolean property) {
         Field[] fields = eClass.getDeclaredFields();
-
-        //找到属性上 @FieldId 注解
+        //找到属性上 @ColumnId 注解
         for (Field f : fields) {
             f.setAccessible(true);
-            FieldId idFieldAnn = f.getDeclaredAnnotation(FieldId.class);
+            ColumnId idFieldAnn = f.getDeclaredAnnotation(ColumnId.class);
             if (idFieldAnn == null) {
                 continue;
             }
@@ -133,15 +122,15 @@ public class MapperHelper {
         Map<String, String> map = new LinkedHashMap<>(fields.length);
         Arrays.stream(fields).filter((f) -> {
             f.setAccessible(true);
-            FieldName annotation = f.getDeclaredAnnotation(FieldName.class);
-            if (annotation != null) {
-                return annotation.exist();
+            Column anno = f.getDeclaredAnnotation(Column.class);
+            if (anno != null) {
+                return anno.exist();
             }
             return true;
         }).forEach(f -> {
             String objectField = f.getName();
             String sqlField;
-            FieldName anno = f.getDeclaredAnnotation(FieldName.class);
+            Column anno = f.getDeclaredAnnotation(Column.class);
             if (anno != null && !StringUtils.isNullOrEmpty(anno.value())) {
                 sqlField = anno.value();
             } else {
@@ -150,7 +139,31 @@ public class MapperHelper {
             map.put(objectField, sqlField);
         });
         return map;
+    }
 
+
+    public static <T> Map<String, String> parseNeedMap(Class<T> eClass,T entity) {
+        Field[] fields = eClass.getDeclaredFields();
+        Map<String, String> map = new LinkedHashMap<>(fields.length);
+        Arrays.stream(fields).filter((f) -> {
+            f.setAccessible(true);
+            Column anno = f.getDeclaredAnnotation(Column.class);
+            if (anno != null) {
+                return anno.exist();
+            }
+            return true;
+        }).forEach(f -> {
+            String objectField = f.getName();
+            String sqlField;
+            Column anno = f.getDeclaredAnnotation(Column.class);
+            if (anno != null && !StringUtils.isNullOrEmpty(anno.value())) {
+                sqlField = anno.value();
+            } else {
+                sqlField = SqlUtil.camelToSnake(objectField);
+            }
+            map.put(objectField, sqlField);
+        });
+        return map;
     }
 
     /**
@@ -166,14 +179,15 @@ public class MapperHelper {
                 //从 字段映射中获取 sql字段
                 Field field = fields[i];
                 field.setAccessible(true);
-                FieldJoin joinAnno = field.getDeclaredAnnotation(FieldJoin.class);
-                if (joinAnno != null) {
-                    Class<?> cClass = field.getClass();
-                    MapperBO<?> mapperBO1 = buildMapperBO(cClass, MapperTypeEnum.SELECT, null);
-                    Object child = parseEntity(rs, mapperBO1);
-                    fieldsVal[i] = child;
-                    continue;
-                }
+                //todo 联表查询
+                ColumnJoin joinAnno = field.getDeclaredAnnotation(ColumnJoin.class);
+//                if (joinAnno != null) {
+//                    Class<?> cClass = field.getClass();
+//                    MapperBO<?> mapperBO1 = buildMapperBO(cClass, MapperTypeEnum.SELECT, null);
+//                    Object child = parseEntity(rs, mapperBO1);
+//                    fieldsVal[i] = child;
+//                    continue;
+//                }
                 String fieldName = field.getName();
                 String sqlField = resultMap.get(fieldName);
                 if (sqlField == null) {
@@ -184,7 +198,8 @@ public class MapperHelper {
                 if (fieldsVal[i] != null && fieldsVal[i].getClass().equals(LocalDateTime.class)) {
                     ObjectMapper objectMapper = new ObjectMapper();
                     objectMapper.registerModule(new JavaTimeModule());
-                    fieldsVal[i] = Date.from(objectMapper.convertValue(fieldsVal[i], LocalDateTime.class).atZone(ZoneId.systemDefault()).toInstant());
+                    fieldsVal[i] = Date.from(objectMapper.convertValue(fieldsVal[i], LocalDateTime.class)
+                            .atZone(ZoneId.systemDefault()).toInstant());
                 }
             }
             return classCon.newInstance(fieldsVal);

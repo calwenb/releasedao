@@ -1,6 +1,6 @@
 package com.wen.softwarecrm.pojo;
 
-import com.wen.releasedao.core.annotation.FieldId;
+import com.wen.releasedao.core.annotation.ColumnId;
 import com.wen.releasedao.core.annotation.TableName;
 import com.wen.releasedao.core.enums.IdTypeEnum;
 import lombok.AllArgsConstructor;
@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @TableName("client")
 public class Client {
-    @FieldId(idType = IdTypeEnum.AUTO)
+    @ColumnId(idType = IdTypeEnum.AUTO)
     private Integer id;
     private String name;
     private String phone;

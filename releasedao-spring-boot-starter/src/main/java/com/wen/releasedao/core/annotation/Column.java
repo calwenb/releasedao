@@ -12,8 +12,19 @@ import java.lang.annotation.*;
 @Documented
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface FieldName {
+public @interface Column {
+    /**
+     * 数据库中的列名
+     */
     String value() default "";
 
+    /**
+     * 是否使用
+     */
     boolean exist() default true;
+
+    /**
+     * 默认值
+     */
+    String defaultValue() default "";
 }

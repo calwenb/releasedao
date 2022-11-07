@@ -9,7 +9,7 @@ import java.lang.annotation.*;
 @Documented
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface FieldJoin {
+public @interface ColumnJoin {
     String value() default "";
     String point () default "";
 }
